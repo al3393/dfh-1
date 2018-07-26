@@ -13,10 +13,9 @@ from utility import get_domain, get_range, generate_bijections, combinations, \
 
 class TANGLE:
     '''represents an elementary tangle that comes after applying braid word to
-    a certain tangle'''
+    a certain tangle.'''
     def __init__(self, pairs):
         '''Creates a tangle from a dictionary object (`pairs`)of matched pairs.'''
-    
     # `pairs` is a dictionary object which contains each orange tangle
     #in `pairs`; orientation is `key` to `value`
     # each orange line may run from i(b_left) to i+0.5 OR from i+0.5 to i+1(b_right)
@@ -83,7 +82,7 @@ class TANGLE:
     
     def remove_cups_caps(self):
         ''' returns two dictionary objects, l_rpairs_nc, r_rpairs_nc
-        that are l_pairs and r_pairs with removed caps or caps'''     
+        that are l_pairs and r_pairs with removed caps or caps.'''     
         temp_left = self.l_pairs
         temp_right = self.r_pairs
         l_pairs_nc = {}
@@ -99,7 +98,7 @@ class TANGLE:
     def add_cups_caps(self):
         ''' This method adds the cups and caps by splitting the index
         for example, if a cap is (1,5):(1,4) then it adds to 
-        l_pairs_wc (1,5):(1.5,4.5) and (1.5,4.5):(1,5)'''          
+        l_pairs_wc (1,5):(1.5,4.5) and (1.5,4.5):(1,5).'''          
         # remove caps or cups
         self.remove_cups_caps()        
         #add caps or cups again --------------------------------
@@ -139,7 +138,7 @@ class TANGLE:
         
     def split_directions(self, left_half = True):
         ''' Returns two dictionary objects, `orient_right` and 
-        `orient_left` for those pairs going left and right ''' 
+        `orient_left` for those pairs going left and right.''' 
         self.get_cups()
         self.get_caps()
         self.remove_cups_caps() 
@@ -165,7 +164,7 @@ class TANGLE:
     def undirect_pairs_split(self): # useless cb and remove
         '''given l_pairs, r_pairs redirect the pairs such as
         it goes from left to right. fixes orientation for 
-        caps or cups as well such that it always goes clockwise'''  
+        caps or cups as well such that it always goes clockwise.'''  
         self.ud_pairs_l = {}
         self.ud_pairs_r = {}   
         # left right
@@ -269,8 +268,7 @@ class TANGLE:
     def get_alpha_left(self):
         ''' returns possible alpha states:
             key : index s of alpha curve A_i
-            value : coordinate
-        '''
+            value : coordinate'''
      # for each boundary points, make an alpha curve below( in y-axis shifted by 0.5)
         alpha = {}
         # if furthest left tangle 
@@ -549,6 +547,20 @@ class Strands(tuple):
             occupied.append(strand[1])
         return tuple(sorted(occupied))
     
+    def beta(self, is_left = True):
+        '''returns a tuple of occupied beta curves, 
+        if `is_left` then returns a tuple of occupied beta
+        on the left. '''    
+        occupied = []
+        if is_left:
+            for strand in self[0]:
+                occupied.append(strand[1])
+        else:
+            for strand in self[1]:
+                occupied.append(strand[0])
+        
+        return tuple(sorted(occupied))
+    
     def leftCompatible(self,idem):
         ''' Test whether this set of strands is compatible with a given left
         idempotent'''
@@ -789,7 +801,6 @@ class StrandDiagram(Generator):
         if left_half ==True: #left half
             left_half = 0
             left_strands = self.strands[0] # tuple of left srands
-            
             l_num = len(left_strands) # of left strands
             combin = generate_subset(l_num - 1 , 2)
             for combo in combin:
@@ -798,14 +809,12 @@ class StrandDiagram(Generator):
             return left_half
         else: #right half  
             right_half = 0
-            right_strands = self.strands[1] # tuple of right srands
-            
+            right_strands = self.strands[1] # tuple of right srands          
             r_num = len(right_strands) # of right strands
             combin = generate_subset(r_num - 1 , 2)
             for combo in combin:
                 if doescross_simple(right_strands[combo[0]],right_strands[combo[1]]) == True:
                     right_half += 1
-    
             return right_half
     
     def crossings(self,option, left_half = False, right_half = False):
@@ -938,8 +947,7 @@ class Simple_Strand(Generator):
     
     def replace(self,delete,add):
         '''returns a new generator with `delete` strand pair removed,
-        and adding `add`'''
-        
+        and adding `add`'''    
         new_pairs = []
         old_pairs = list(self.pairs)
         for pair in old_pairs:
@@ -1185,11 +1193,9 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
             take_right = not self.is_left
             left_strands = gen1.strands.convert_dict(take_right)
             right_strands = gen2.strands.convert_dict(take_right)
-            new_pairs = []
-            
+            new_pairs = []      
             for k,v in left_strands.items():
                 new_pairs.append((k,right_strands[v]))
-            
             new_pairs = tuple(new_pairs)    
             return Simple_Strand(self, self.is_left, new_pairs)
                 
@@ -1199,8 +1205,7 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
         if not isinstance(gen2, Simple_Strand):
             return NotImplemented
         assert gen1.parent == self and gen2.parent == self, \
-        "Algebra not compatible."
-        
+        "Algebra not compatible."        
         if sorted(gen1.t) != sorted(gen2.s):
             return E0      
         if gen1.sign_seq != gen2.sign_seq:
@@ -1215,19 +1220,23 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
     
     def mod_6(self, gen1, gen2): 
         '''returns True if two generators catches mod relations in figure 6 '''
-        
         if self.is_left: # left side of the tangle
             l_strands = gen1.strands.right_converted
             r_strands = gen2.strands.right_converted
         else: # right side of the tangle
             l_strands = gen1.strands.left_converted
-            r_strands = gen2.strands.left_converted
-            
+            r_strands = gen2.strands.left_converted       
         c_l = gen1.strands.strandCrossing_coord(not self.is_left)
         c_r = gen2.strands.strandCrossing_coord(not self.is_left)   
         l_tangle = [gen1.tangle.orient_right_lhalf, gen1.tangle.orient_left_lhalf]
-        r_tangle = [gen2.tangle.orient_right_rhalf, gen2.tangle.orient_left_rhalf]
-
+        r_tangle = [gen2.tangle.orient_right_rhalf, gen2.tangle.orient_left_rhalf]  
+#        print("Entering : Mod 6") #cb and remove
+#        print("\nl_strands: {0}".format(l_strands))
+#        print("\nr_strands: {0}".format(r_strands))
+#        print("\nc_l: {0}".format(c_l))
+#        print("\nc_r: {0}".format(c_r))
+#        print("\nl_tangle {0}".format(l_tangle))
+#        print("\nr_tangle {0}".format(r_tangle))        
         return len(self.mult_two_halfs(l_tangle, l_strands, r_tangle, r_strands)) > 0 \
                 or len(self.cross_twice(l_strands, r_strands, c_l, c_r)) > 0
 
@@ -1283,17 +1292,14 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
         c_1 is strandCrossing(False) called from the left_strands
         c_2 is the strandCrossing(True) called from right_strands'''
         # check if compatible cb and remove
-
         if(self.is_left): # left side of  the tangle
             left_strands = dict_shift(left_strands,True)# shift left_strand to the right
             c_l = dict_shift_double(c_l ,True)
         else:
             right_strands = dict_shift(right_strands,False) # shift left_strand to the right 
-            c_r = dict_shift_double(c_r ,False)
-            
+            c_r = dict_shift_double(c_r ,False)            
         if not (get_range_dict(left_strands) == get_domain_dict(right_strands)):
-            raise TypeError ("strand boundaries don't line up")         
-            
+            raise TypeError ("strand boundaries don't line up")                    
         double_crossings = []
         for k in list(c_l.items()):
             for v in list(c_r.items()):
@@ -1309,6 +1315,4 @@ class StrandAlgebraElement(Element):
             if not sd.isIdempotent():
                 return False
         return True
-
 ############################### TEST CODE ###################################
-
