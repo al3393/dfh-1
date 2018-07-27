@@ -8,7 +8,7 @@ from Algebra import E0
 from utility import get_domain, get_range, generate_bijections, combinations, \
                 get_domain_dict, get_range_dict, doescross_simple_rc,in_between_list, \
                 reorganize_sign, reorganize_sign_2,dict_shift, get_start_dict, get_end_dict,\
-                dict_shift_double, doescross_bool
+                dict_shift_double, doescross_bool, mod_between, mod_helper
 '''Elementary tangles and its algebras'''
 
 class TANGLE:
@@ -561,16 +561,28 @@ class Strands(tuple):
         
         return tuple(sorted(occupied))
     
-    def leftCompatible(self,idem):
+    def leftCompatible(self,sa_gen):
+        '''Tests whether this set of strands is left compatible with a given
+        A(-dLT) algebra element.'''
+    
+        if (not isinstance(sa_gen, Simple_Strand)) and sa_gen.is_left == True:
+            raise TypeError("Algebra Element and Strand not Compatible.")  
+        return sa_gen.t == get_domain(self.get_left_idem().pairs())
+        
+    def rightCompatible(self,sa_gen):
+         '''Tests whether this set of strands is compatible with a given 
+         A(dRT) algebra element.'''
+         if (not isinstance(sa_gen, Simple_Strand)) and sa_gen.is_left == False:
+            raise TypeError("Algebra Element and Strand not Compatible.")
+         return sa_gen.s == get_range(self.get_right_idem().pairs())
+
+    def leftCompatible_idem(self,idem):
         ''' Test whether this set of strands is compatible with a given left
         idempotent'''
-        
-        if not ( isinstance(idem, Idempotent) and idem.is_left == True):
-            raise TypeError("SOMETHING IS WRONG")
-        
+        raise isinstance(idem, Idempotent) and idem.is_left == True
         return self.occupied_left_alpha() == idem.comp_idem() 
     
-    def rightCompatible(self,idem):
+    def rightCompatible_idem(self,idem):
         ''' Test whether this set of strands is compatible with a given right
         idempotent'''  
         raise isinstance(idem, Idempotent) and idem.is_left == False
@@ -580,8 +592,8 @@ class Strands(tuple):
         ''' Tests whether this set of strands is compatible with the given 
         idempotents on the two sides. '''
         
-        return self.leftCompatible(left_idem) and \
-        self.rightCompatible(right_idem) #cb
+        return self.leftCompatible_idem(left_idem) and \
+        self.rightCompatible_idem(right_idem) #cb
     
     def get_left_idem(self): # needs modification
         '''Find the left_idem given the strand information.'''
@@ -709,6 +721,19 @@ class Strands(tuple):
         self.left_converted_di = left_converted
         self.right_converted_di = right_converted
         
+    def get_strand_index(self, coord,is_left):
+        ''' receives the coord of a strand, and returns it in a alpha/beta index
+        format. If coord = ((1,0.5),(1.5,1.5)), returns say (1,3)'''
+        self.convert_di()
+        if is_left:
+            for k,v in self.left_converted_di.items():
+                if v == coord:
+                    return k
+        else:
+            for k,v in self.right_converted_di.items():
+                if v == coord:
+                    return k
+            
     def convert(self):
         ''' Converts a given strand in a tuple format, to a dictionary format
         using the coordinates stored in its parent tangle.
@@ -716,6 +741,9 @@ class Strands(tuple):
         with natural orientation from left to right'''     
         left_converted = {}
         right_converted ={}
+        print("++++++")
+        print(self.tangle.alpha_left)
+        print("++++++")
         #left half
         for strand in self[0]:
             start = self.tangle.alpha_left[strand[0]]
@@ -1061,7 +1089,27 @@ class Simple_Strand(Generator):
         either left_half or right_half depending on `left_half'''
 
         return self.strands.numCrossing(True) + self.strands.numCrossing(False)
-
+    
+    def replace(self, old, new, is_left):
+        '''creates a new stranddiagram, with a new strand, with deleting pair
+        `old` on the `is_left`side and replacing it with a new one. ''' 
+        raw = self.strands.data.copy()
+        if is_left:
+            new_left = tuple(list(raw[0]).remove(old))
+            mod = (new_left, raw[1])
+        else:
+            new_right = tuple(list(raw[1]).remove(old))
+            mod = (raw[0], new_right)
+        return StrandDiagram(self.parent, mod)
+    
+    def replace_2(self, old_pair, new_strand):
+        ''' replaces old_pair[0] on the left, and old_pair[1] on the right with new_pair.'''
+        raw = self.strands.data.copy()
+        new_left =  tuple(list(raw[0]).remove(old_pair[0]))
+        new_right = tuple(list(raw[1]).remove(old_pair[1]))
+        mod = (new_left, new_right)
+        return StrandDiagram(self.parent, mod)
+    
 class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
     '''Represents the strand algebra of a tangle T_i generated by 
      left or right sign sequence.'''
@@ -1238,7 +1286,7 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
 #        print("\nl_tangle {0}".format(l_tangle))
 #        print("\nr_tangle {0}".format(r_tangle))        
         return len(self.mult_two_halfs(l_tangle, l_strands, r_tangle, r_strands)) > 0 \
-                or len(self.cross_twice(l_strands, r_strands, c_l, c_r)) > 0
+                or len(self.cross_twice(l_strands, r_strands, c_l, c_r)) > 0 
 
     ## helper methods for mod 6() 
     def mult_two_halfs(self,left_tangle, left_strands, right_tangle, right_strands):
@@ -1248,7 +1296,7 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
                       dict1 : orienting left, dict2: orienting right
         right_tangle: [dict1, dict2] left half of tangle T2, a dictionary object of coordinates
         left_strand: right half of tangle T1 strands, a dictionary object of coordinates
-        right_strand: left half of tangle T1 strands, a dictionary object of coordinates
+        right_strand: left half of tangle T2 strands, a dictionary object of coordinates
         
         pairs is an array object, which elements of form [start tangle, start strand]
         used for algebra multiplication and for other things later( d+, dm)'''
@@ -1289,8 +1337,8 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
     def cross_twice(self,left_strands, right_strands, c_l, c_r): # cb and change it to true or false later if uncessary
         '''Given left_strand, and right_strand, returns double crossings,
         assumes the strands are multiplicable. 
-        c_1 is strandCrossing(False) called from the left_strands
-        c_2 is the strandCrossing(True) called from right_strands'''
+        c_1 is strandCrossing_coord(False) called from the left_strands
+        c_2 is the strandCrossing_coord(True) called from right_strands'''
         # check if compatible cb and remove
         if(self.is_left): # left side of  the tangle
             left_strands = dict_shift(left_strands,True)# shift left_strand to the right
