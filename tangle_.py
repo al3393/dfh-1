@@ -1,4 +1,9 @@
 import operator
+from algebra import *
+import statistics as st
+from utility import *
+from Algebra import *
+import operator
 #from algebra import DGAlgebra, Element, Generator, Tensor, TensorGenerator
 import statistics as st
 from utility import orientation,orientation_i, complement,generate_subset,\
@@ -303,7 +308,6 @@ class TANGLE:
             for i in range(s_i):
                 x, y = coord[i]
                 alpha.update({i:(x,(y-0.5))})
-            
             x, y = coord[s_i -1] # add the top alpha curve
             alpha.update({s_i: (x, y+ 0.5)}) 
         return alpha
@@ -312,16 +316,13 @@ class TANGLE:
         '''uses information on pairs and returns the set object of 
         y-coordinates occupied in B by the tangle, including a cup or a cap.'''
         self.occupied = set() # set of occupied y axis
-        #contribution from left half
-        for value in list(self.ud_pairs_l.values()):
+        for value in list(self.ud_pairs_l.values()): #contribution from left half
             if value[0] == self.i_mid: # not cap
                 self.occupied.add(value[1])
             else:  # cap
                 #raise value[0] != self.i_mid
                 self.occupied.add(value[1])
-                  
-        # contribution from right half
-        for key in list(self.ud_pairs_r.keys()):
+        for key in list(self.ud_pairs_r.keys()): #contribution from right half
             if key[0] == self.i_mid: # not cup
                 self.occupied.add(key[1])       
             else: # cup
@@ -341,7 +342,6 @@ class TANGLE:
         for i in range(s_i):
             y = b_occupied[i]
             beta.update({i:(self.i_mid, y - 0.5)})
-        
         y = b_occupied[s_i - 1]
         beta.update({s_i: (self.i_mid, y + 0.5)})
     
