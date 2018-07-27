@@ -1,4 +1,3 @@
-
 from tangle_ import Simple_Strand, StrandAlgebra,TANGLE,Strands, Idempotent, StrandDiagram
 from utility import mod_helper, mod_between
 import numpy as np
@@ -14,6 +13,19 @@ from utility import get_domain, get_range, generate_bijections, combinations, \
                 get_domain_dict, get_range_dict, doescross_simple_rc,in_between_list, \
                 reorganize_sign, reorganize_sign_2,dict_shift, get_start_dict, get_end_dict,\
                 dict_shift_double, doescross_bool, mod_between, mod_helper
+
+def del_l_raw(gen):
+    ''' del_L map that sends CT-(T_i) to  A-(dRT) * I(-dRT) * CT-(T_i)
+    gen is an element of CT-(T_i).'''
+    if not isinstance(gen, StrandDiagram):
+        return NotImplemented
+    prod_raw = d_m_raw_A(gen)
+    if prod_raw is None:
+        return E0
+    if self.ring is F2: # cb and change
+        return prod_raw.elt()   
+    else:
+        pass
 
 def m2(gen, alg_gen):
     ''' m2 map that sends CT-(T) * I(-dRT) * A-(dRT) to CT-(T).
@@ -55,21 +67,9 @@ def mod_6_m2(gen, alg_gen):
     r_strands = alg_gen.strands.left_converted
     c_l = gen.strands.strandCrossing_coord(False)
     c_r = gen.strands.strandCrossing_coord(True)
-    
     return len(mult_two_halfs(l_tangle, l_strands, r_tangle, r_strands)) > 0 \
                 or len(cross_twice(l_strands, r_strands, c_l, c_r)) > 0 
     
-def del_l_raw(gen, is_B):
-    ''' del_L map that sends CT-(T_i) to  A-(dRT) * I(-dRT) * CT-(T_i)
-    gen is an element of CT-(T_i)
-    gen is a generator in CT-(T_i)
-    if is_B = True, apply it to B_j
-    if is_B = False apply it to A_j'''  
-    if is_B: # apply to B_j
-        pass
-    else:# apply to A_j apply to A_j left
-        pass
- 
 def d_plus_raw_B(gen):
     ''' d_+ map that smooths a black-black crossing of a generator `gen`
     of CT-(T_i)) contained in right halfs ( i- 1/2, i)
@@ -129,82 +129,160 @@ def d_minus_raw(gen, is_B):
                 lst.append(mod_helper_2(gen, s1, s2, is_crossed))
     return lst
 
-def d_m_raw(is_B, gen, gen2 = None):
-    ''' dm map that picks two pair of points, given A_j or
-    B_j. Exchanges two ends of the corresponding pair of black strands of generator
+def d_m_raw_A(gen1, algebra, alg_left):
+    '''dm map that picks two pair of points along  A_j, bewteen 
+    Exchanges two ends of the corresponding pair of black strands.
+    if `alg_left` == True, A(-dLT_i) * CT(T_ii)
+    Returns a list of elements of the form ((s1, s2), d_m_raw_term), where
+    s1 < s2 are pairs of strands that d_m is applied, and
+        diff_term is a generator in d_plus() obtained by uncrossing or  crossing
+        these two strands. Together they specify all terms in d_m()'''
+    
+    if alg_left: # So far only implemented for A(-dLT_i) * CT(T_ii)
+        l_Algebra = gen.get_StrandAlgebra()
+        r_strands = gen.strands_left_converted
+        types.mod_helper(l_strands, r_strands)
+    # CB
+    lst =  []
+    l_strands = []
+    r_strands = []
+    t_l = []
+    t_r = []
+    types = mod_helper(l_strands, r_strands)
+
+    # left no cross strands 
+    l_horizontals = types[1]
+    for s1, s2 in l_horizontals:
+        is_crossed = False
+        for tangle in t_l: # left half tangles
+            if abs(mod_between(tangle, (s1[0],s2[0]),(s1[1],s2[1]), True)) == 1:
+                is_crossed = True
+                break
+        for tangle in t_r: # right half tangles
+            x = (tuple(np.add(s1[0],(1,0))), tuple(np.add(s2[0],(1,0))))
+            if mod_between(tangle,x, False ) != -2:
+                is_crossed = True
+                break
+        if not is_crossed:
+            pass
+    # right cross strands
+    r_cross = types[4]
+    for s1, s2 in r_cross:
+        is_crossed = False
+        for tangle in t_l: # left half tangles
+            x = (tuple(np.subtract(s1[1],(1,0))), tuple(np.subtract(s2[1],(1,0))))
+            if mod_between(x,(s1[0],s2[0]),True) != -2:
+                is_crossed = True
+                break
+        for tangle in t_r: # right half tangles
+            if abs(mod_between(tangle, (s1[0],s2[0]),(s1[1],s2[1]),False)) == 1:
+                is_crossed = True
+                break
+
+    # left below right
+    l_below_r = types[5]
+    for s1, s2 in l_below_r:
+        is_crossed = False
+        left_pair = (tuple(np.subtract(s2[0],(0.5,0))), s1[0])
+        mid_pair = (s2[0],s1[1])
+        right_pair = (tuple(np.add(s1[1],(0.5,0))),s2[1])
+        for tangle in t_l: #left half tangles
+            if mod_between(tangle, left_pair, mid_pair, True) == -1:
+                is_crossed = True
+                break
+        for tangle in t_r: # right half tangles
+            if -2 < mod_between(tangle, mid_pair, right_pair, False) < 1:
+                is_crossed = True
+                break 
+            
+    # left above right
+    l_above_r = types[6]
+    for s1, s2 in l_above_r:
+        is_crossed = False
+        left_pair = (tuple(np.subtract(s2[0],(0.5,0))), s1[0])
+        mid_pair = (s2[0],s1[1])
+        right_pair = (tuple(np.add(s1[1],(0.5,0))),s2[1])
+        for tangle in t_l: # left half tangle
+            if mod_between(tangle, left_pair, mid_pair, True) == 1:
+                is_crossed = True
+                break
+        for tangle in t_r: # right half tangle
+            if mod_between(tangle, mid_pair, right_pair, False) > -1:
+                is_crossed = True
+                break
+    
+def d_m_raw_B(gen):
+    ''' dm map that picks two pair of points along Bj.
+    Exchanges two ends of the corresponding pair of black strands of generator
     `gen` in CT(Ti)
-    if is_B = True, apply it to B_j
-    if is_B = False apply it to A_j
         Returns a list of elements of the form ((s1, s2), d_m_raw_term), where
     s1 < s2 are pairs of strands that d_m is applied, and
         diff_term is a generator in d_plus() obtained by uncrossing or  crossing
         these two strands. Together they specify all terms in d_m(). '''
-    if is_B:
-        lst = []
-        l_strands = gen.strands.left_converted 
-        r_strands = gen.strands.right_converted
-        types = mod_helper(l_strands, r_strands)
-        t_l = gen.tangle.l_pairs_wc 
-        t_r = gen.tangle.r_pairs_wc 
-        # right no cross strands
-        r_horizontals = types[3]
-        for s1,s2 in r_horizontals:
-            is_crossed = False
-            for tangle in t_r: # right half tangles
-                if abs(mod_between(tangle, (s1[0],s2[0]),(s1[1],s2[1]),False)) == 1:
-                    is_crossed = True
-            for tangle in t_l: #left half tangles
-                x = (tuple(np.subtract(s1[1],(1,0))), tuple(np.subtract(s2[1],(1,0))))
-                if mod_between(tangle, x,(s1[0],s2[0]), True) != -2:
-                    is_crossed = True
-            if not is_crossed:
-                lst.append(mod_helper_2(gen, s1, s2, is_crossed))
-        # left cross strands
-        l_cross = types[2]
-        for s1,s2 in l_cross:
-            is_crossed = False
-            for tangle in t_l: #left half tangles
-                if abs(mod_between(tangle, (s1[0],s2[0]),(s1[1],s2[1]),True)) == 1:
-                    is_crossed = True
-            for tangle in t_r: # right half tangles
-                x = (tuple(np.add(s1[0],(1,0))), tuple(np.add(s2[0],(1,0))))
-                if mod_between(tangle,(s1[1],s2[1]),x, False) != -2:
-                    is_crossed = True  
-            if not is_crossed:
-                lst.append(mod_helper_2(gen, s1, s2, is_crossed))
-        # left above right strands
-        l_above_r = types[6]
-        for s1, s2 in l_above_r:
-            is_crossed = False
-            left_pair = (tuple(np.subtract(s2[0],(0.5,0))), s1[0])
-            mid_pair = (s2[0],s1[1])
-            right_pair = (tuple(np.add(s1[1],(0.5,0))),s2[1])
-            for tangle in t_l: # left half triangles
-                if mod_between(tangle, left_pair, mid_pair, True) < 1:
-                    is_crossed = True
-            for tangle in t_r: # right_half tangles
-                if mod_between(tangle, mid_pair, right_pair, False) == -1:
-                    is_crossed = True
-            if not is_crossed:
-                lst.append(mod_helper_2(gen, s1, s2, is_crossed)) 
-        # left below  right strands
-        l_below_r = types[5]      
-        for s1,s2 in l_below_r: #s1 on the left, s2 on the right
-            is_crossed = False
-            left_pair = (tuple(np.subtract(s2[0],(0.5,0))), s1[0])
-            mid_pair = (s2[0],s1[1])
-            right_pair = (tuple(np.add(s1[1],(0.5,0))),s2[1])
-            for tangle in t_l: # left half tangles
-                if mod_between(tangle, left_pair, mid_pair, True) > -1 :
-                    is_crossed = True
-            for tangle in t_r:
-                if mod_between(tangle, mid_pair, right_pair, False) == 0:
-                    is_crossed = True
-            if not is_crossed:
-                lst.append(mod_helper_2(gen, s1, s2, is_crossed))
-    else: # apply to Aj
-            pass
-    
+    lst = []
+    l_strands = gen.strands.left_converted 
+    r_strands = gen.strands.right_converted
+    types = mod_helper(l_strands, r_strands)
+    t_l = gen.tangle.l_pairs_wc 
+    t_r = gen.tangle.r_pairs_wc 
+    # right no cross strands
+    r_horizontals = types[3]
+    for s1,s2 in r_horizontals:
+        is_crossed = False
+        for tangle in t_r: # right half tangles
+            if abs(mod_between(tangle, (s1[0],s2[0]),(s1[1],s2[1]),False)) == 1:
+                is_crossed = True
+        for tangle in t_l: #left half tangles
+            x = (tuple(np.subtract(s1[1],(1,0))), tuple(np.subtract(s2[1],(1,0))))
+            if mod_between(tangle, x,(s1[0],s2[0]), True) != -2:
+                is_crossed = True
+        if not is_crossed:
+            lst.append(mod_helper_2(gen, s1, s2, is_crossed))
+    # left cross strands
+    l_cross = types[2]
+    for s1,s2 in l_cross:
+        is_crossed = False
+        for tangle in t_l: #left half tangles
+            if abs(mod_between(tangle, (s1[0],s2[0]),(s1[1],s2[1]),True)) == 1:
+                is_crossed = True
+        for tangle in t_r: # right half tangles
+            x = (tuple(np.add(s1[0],(1,0))), tuple(np.add(s2[0],(1,0))))
+            if mod_between(tangle,(s1[1],s2[1]),x, False) != -2:
+                is_crossed = True  
+        if not is_crossed:
+            lst.append(mod_helper_2(gen, s1, s2, is_crossed))
+    # left above right strands
+    l_above_r = types[6]
+    for s1, s2 in l_above_r:
+        is_crossed = False
+        left_pair = (tuple(np.subtract(s2[0],(0.5,0))), s1[0])
+        mid_pair = (s2[0],s1[1])
+        right_pair = (tuple(np.add(s1[1],(0.5,0))),s2[1])
+        for tangle in t_l: # left half tangles
+            if -2 < mod_between(tangle, left_pair, mid_pair, True) < 1:
+                is_crossed = True
+        for tangle in t_r: # right_half tangles
+            if mod_between(tangle, mid_pair, right_pair, False) == -1:
+                is_crossed = True
+        if not is_crossed:
+            lst.append(mod_helper_2(gen, s1, s2, is_crossed)) 
+    # left below  right strands
+    l_below_r = types[5]      
+    for s1,s2 in l_below_r: #s1 on the left, s2 on the right
+        is_crossed = False
+        left_pair = (tuple(np.subtract(s2[0],(0.5,0))), s1[0])
+        mid_pair = (s2[0],s1[1])
+        right_pair = (tuple(np.add(s1[1],(0.5,0))),s2[1])
+        for tangle in t_l: # left half tangles
+            if mod_between(tangle, left_pair, mid_pair, True) > -1 :
+                is_crossed = True
+        for tangle in t_r:
+            if mod_between(tangle, mid_pair, right_pair, False) == 0:
+                is_crossed = True
+        if not is_crossed:
+            lst.append(mod_helper_2(gen, s1, s2, is_crossed))
+    return lst
+
 def mod_helper_2(gen,s1, s2, is_crossed):
     '''returns the new generator if is_crossed is false '''
     if not is_crossed:
@@ -287,9 +365,6 @@ def helper(tang_left, tang_right, pair_1, pair_2, pair_3, is_left, option):
         
         pairs is an array object, which elements of form [start tangle, start strand]
         used for algebra multiplication and for other things later( d+, dm)'''
-        # cb and change it to true or false later if uncessary
-        # cb and fix - need to consider left or right        
-        #assume split_cup and cap for now cb and check with akram
         pairs = []
         # tangle orienting right      
         t1 = left_tangle[0]
