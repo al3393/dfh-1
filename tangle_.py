@@ -1088,7 +1088,6 @@ class Simple_Strand(Generator):
     def numCrossing(self): # cb and remove - already in strands class
         ''' Returns the number of crossings between moving strands
         either left_half or right_half depending on `left_half'''
-
         return self.strands.numCrossing(True) + self.strands.numCrossing(False)
     
     def replace(self, old, new, is_left):

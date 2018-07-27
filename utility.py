@@ -479,6 +479,7 @@ def doescross_simple_rc(left,right):
     
     return R
 
+
 def in_between(a,b, x):
     ''' returns True if x is in between a and b. 
         a > b or b < a may happen. Error returned if a = b'''
@@ -651,7 +652,7 @@ def doescross_bool(a,b):
 
 def combinations(n, m):
     ''' retyrbs an array of all possible combinations of n and m
-    for example, if n = 1 , n = 2, returns, if WLOG n < m
+    for example, if n = 1 , m = 2, returns, if WLOG n < m
     [ (0,0),(0,1),.....(n, m-1 ), (n,m)]'''
     
     
@@ -668,7 +669,7 @@ def combinations(n, m):
     
 def generate_subset(n, num):
     '''given range [n] = [0,1,2,...n], returns the list of subsets
-    of size n of [n]'''
+    of size num of [n]'''
     return list(it.combinations(range(n+1), num))
 
 def generate_bijections(n):
@@ -795,8 +796,7 @@ def simple_intersections( dict1, dict2, itself = False): # cb and fix positional
 def get_domain(tup):
     '''given a tuple of pairs(injective), it returns list of domains
     For example, if tup = ((1,2), (2,3), (4,2)), 
-    then this method returns [1,2,4]'''
-    
+    then this method returns [1,2,4]'''    
     dom = []
     for pair in tup:
         dom.append(pair[0])
@@ -921,21 +921,170 @@ def is_bijection(tup):
     2. if tup = ((1,1), (2,2)) then returns true
     '''
 
-def safeMultiply(a, b):
-    """Safely multiply the two sides using __mul__ and __rmul__. Return
-    NotImplemented if both fails.
-    """
-    try:
-        prod = a.__mul__(b)
-    except TypeError:
-        prod = NotImplemented
-    if prod is NotImplemented:
-        try:
-            prod = b.__rmul__(a)
-        except TypeError:
-            prod = NotImplemented
-    return prod
 
+def mod_helper(left_strand, right_strand):
+    ''' Helper method used for dm, d+, d-.
+    left_strands, right_strands, are coordinates.
+    Given left_strands, and right strands, consists of strand pairs
+    such as [((x_1, y_1),(x_2, y_2))....]
+    
+    Returns an dictionary object `types` whose value is a list of such 
+    stair strands
+    
+    Option #1: left horizontal ( no cross)
+    Option #2: left cross ( cross)
+    Option #3: right horizontal strands ( no cross)
+    Option #4: right cross( cross)
+    Option #5: left below right
+    Option #6: left above right
+    '''    
+    n = len(left_strand)
+    m = len(right_strand)
+    if not isinstance(left_strand, list):
+        if isinstance(left_strand, tuple):
+            left_strand = list(left_strand) 
+        elif isinstance(left_strand, dict):
+            left_strand = list(left_strand.items())
+        else:
+            raise TypeError("Something is wrong -- Not a list, dict, or tuple")
+    if not isinstance(right_strand, list):
+        if isinstance(right_strand, tuple):
+            right_strand = list(right_strand)
+        elif isinstance(right_strand, dict):
+            right_strand = list(right_strand.items())
+        else:
+            raise TypeError("Something is wrong -- Not a list, dict, or tuple")
+    types = {1:[],2:[],3:[],4:[],5:[],6:[]}
+    #left half
+    combin = generate_subset(n -1, 2)
+    for combo in combin:
+        strand_1 = left_strand[combo[0]]
+        strand_2 = left_strand[combo[1]]
+        if doescross_bool(strand_1, strand_2):
+            types[2].append((strand_1, strand_2))
+        else:
+            types[1].append((strand_1, strand_2)) 
+    #right_half
+    combin = generate_subset(m-1, 2)
+    for combo in combin:
+        strand_1 = right_strand[combo[0]]
+        strand_2 = right_strand[combo[1]]
+        if doescross_bool(strand_1, strand_2):
+            types[4].append((strand_1, strand_2))
+        else:
+            types[3].append((strand_1, strand_2))      
+    # Calculate option#5 and #6
+    combin = combinations(n-1,m-1) 
+    for combo in combin:
+        l_strand  = left_strand[combo[0]]
+        r_strand = right_strand[combo[1]]
+#        print("Comparison between {0} vs {1}:".format(l_strand, r_strand))
+        if l_strand[1][1] < r_strand[0][1]: # left above right, Option 5
+            types[5].append((l_strand,r_strand))
+        else:
+            if not l_strand[1][1] > r_strand[0][1]:
+                raise TypeError("Something is wrong.")
+            types[6].append((l_strand, r_strand))   
+    return types
+
+def mod_between(tangle, pair_left, pair_right, is_left):
+    '''given a `tangle` coordinate pair ((x_1, y_1),(x_2, y_2)), 
+    with any orientation left to right, tells us whether it hits up(1) down(-1) or middle (0). 
+    if is_left is true:
+        it means pair_right is the middle strand pair
+    if is_right is true:
+        it means pair_left is the middle strand pair.
+    Assumes that the x coordinates line up well. return 2, if it doesn't even hit. '''
+    
+    t_1 = tangle[0]
+    t_2 = tangle[1]
+    if t_2[0] < t_1[0]:
+        temp= t_1
+        t_1 = t_2
+        t_2 = temp      
+    y_left_1 = pair_left[0][1]
+    y_left_2 = pair_left[1][1]
+    y_right_1 = pair_right[0][1]
+    y_right_2 = pair_right[1][1]   
+    if is_left:
+        if in_between(y_right_1, y_right_2, t_2[1]):
+            if in_between(y_left_1, y_left_2, t_1[1]): # Mod Relation 2
+                return 0
+            if t_1[1]> y_left_1 and t_1[1]> y_left_2:# Mod Relation 1
+                return 1
+            else:
+                return -1 # Mod Relation 3
+        else:
+            return 2
+    else:
+        if in_between(y_left_1, y_left_2, t_1[1]):
+            if in_between(y_right_1, y_right_2,t_2[1]): # Mod Relation 5
+                return 0
+            if t_2[1] > y_right_1 and t_2[1] > y_right_2:  # Mod Relation 4
+                return 1
+            else:  # Mod Relation 6
+                return -1 
+        else:
+            return 2
+
+def conc_strands(pair1, pair2):
+    ''' Given two tuples, that consists of pairs, say from strand 1, stand 2,
+    concantenates the strand and returns the new tuple
+    for example, if pair1 = ((1,2), (4,2)...)
+    pair2 = ((2,3),(2,1)... 
+    This method will return tuple object, ((1,3), (4,1)...'''
+     
+    new = []                                  
+    left = list(pair1)
+    right = list(pair2)                                      
+    for l in left:
+        for r in right:
+            if l[1] == r[0]:
+                new.add((l[0],r[1]))
+    return tuple(new)
+
+def replace_sd_1(raw, old,new, is_left):
+        ''' helper method for `replace` in Stand Diagram Class. Replaces the corresponding 
+        strand on the `is_left` side. '''
+        if is_left:
+            new_left = list(raw[0])
+            new_left.remove(old)
+            new_left.add(new)
+            mod = (tuple(new_left), raw[1])
+        else:
+            new_right = list(raw[1])
+            new_right.remove(old)
+            new_right.add(new)
+            mod = (raw[0], tuple(new_right))
+        return mod
+    
+def replace_sd_2(raw, old, new):
+    ''' helper method for `replace` in Stand Diagram Class.'''
+    if len(old) != len(new):
+        raise TypeError("The number of old pairs to be replaced do not equal that of new_strands.")
+    # if replace single pair
+    if isinstance(old, tuple) and isinstance(new, tuple): 
+        #replaces old[0] on the left with new_pair[0], and old[1] on the right with new_pair[1]
+        new_left = list(raw[0])
+        new_left.remove(old[0])
+        new_left.add(new[0])
+        new_right = list(raw[1])
+        new_right.remove(old[1])
+        new_right.add(new[1])
+        return (tuple(new_left),tuple(new_right))
+    
+    elif isinstance(old, list) and isinstance(new, list):
+        new_left = list(raw[0])
+        new_right = list(raw[1])
+        for index, value in old[0]:   #change left half
+            new_left.remove(value)
+            new_left.add(new[0][index])
+        for index, value in old[1]: #change right half
+            new_right.remove(value)
+            new_right.add(new[1][index])           
+        return (tuple(new_left),tuple(new_right))
+    else:
+        raise TypeError(" Type Error: The given input `old` and `new` is not even in tuple or list format." )       
 # Constants for left and right action
 ACTION_LEFT, ACTION_RIGHT = 0, 1
 def sideStr(side):
