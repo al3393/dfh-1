@@ -2,7 +2,7 @@ from tangle_ import TANGLE,Idempotent, Strands, Simple_Strand, StrandAlgebra
 from utility import get_domain, get_range, generate_bijections, combinations, \
                 get_domain_dict, get_range_dict, doescross_simple_rc,in_between_list, \
                 reorganize_sign, reorganize_sign_2,dict_shift, get_start_dict, get_end_dict,\
-                dict_shift_double, doescross_bool,generate_subset
+                dict_shift_double, doescross_bool,generate_subset,from utility import in_between
 
 def mod_helper(left_strand, right_strand):
     ''' Helper method used for dm, d+, d-.
@@ -69,6 +69,47 @@ def mod_helper(left_strand, right_strand):
             types[6].append((l_strand, r_strand))   
     return types
 
+def mod_between(tangle, pair_left, pair_right, is_left):
+    '''given a `tangle` coordinate pair ((x_1, y_1),(x_2, y_2)), 
+    with any orientation left to right, tells us whether it hits up(1) down(-1) or middle (0). 
+    if is_left is true:
+        it means pair_right is the middle strand pair
+    if is_right is true:
+        it means pair_left is the middle strand pair.
+    Assumes that the x coordinates line up well. return 2, if it doesn't even hit. '''
+    
+    t_1 = tangle[0]
+    t_2 = tangle[1]
+    if t_2[0] < t_1[0]:
+        temp= t_1
+        t_1 = t_2
+        t_2 = temp      
+    y_left_1 = pair_left[0][1]
+    y_left_2 = pair_left[1][1]
+    y_right_1 = pair_right[0][1]
+    y_right_2 = pair_right[1][1]   
+    if is_left:
+        if in_between(y_right_1, y_right_2, t_2[1]):
+            if in_between(y_left_1, y_left_2, t_1[1]): # Mod Relation 2
+                return 0
+            if t_1[1]> y_left_1 and t_1[1]> y_left_2:# Mod Relation 1
+                return 1
+            else:
+                return -1 # Mod Relation 3
+        else:
+            return 2
+    else:
+        if in_between(y_left_1, y_left_2, t_1[1]):
+            if in_between(y_right_1, y_right_2,t_2[1]): # Mod Relation 5
+                return 0
+            if t_2[1] > y_right_1 and t_2[1] > y_right_2:
+                return 1
+            else:
+                return -1
+        else:
+            return 2
+        
+    
 
 t_5= {(3,1):(3.5,2),(3,2):(3.5,1),(3.5,3):(3,3),(3,6):(3.5,6),(3.5,1):(4,1),\
        (3.5,2):(4,2),(4,3):(3.5,3),(3.5,6):(4,6), (4,4):(4,5)}
