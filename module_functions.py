@@ -19,15 +19,13 @@ def m2(gen, alg_gen):
     ''' m2 map that sends CT-(T) * I(-dRT) * A-(dRT) to CT-(T).
     * gen is a generator in CT-(Ti)
     * alg_gen is a generator of  A-(dRTi) 
-    gen1 here refers to the strand diagram generator of right most elementary tangle T_i '''
-    
+    gen1 here refers to the strand diagram generator of right most elementary tangle T_i '''  
     if not isinstance(gen, StrandDiagram):
         return NotImplemented
     if not isinstance(alg_gen, Simple_Strand):
         return NotImplemented
     assert gen.tangle == alg_gen.p_tangle, " Not compatible. Different Tangle."
-    assert alg_gen.is_left == False, " Not compatible, Algebra takes -dLT."
-    
+    assert alg_gen.is_left == False, " Not compatible, Algebra takes -dLT."    
     if not gen.strands.rightCompatible(gen, alg_gen):
         return E0
     prod_raw = m2_raw(gen, alg_gen)
@@ -41,7 +39,6 @@ def m2(gen, alg_gen):
 def m2_raw(gen, alg_gen):
     ''' If gen and alg_gen can be multiplied (i.e.,the strands pairs matching up), return the generator in CT-(T) that is
     their product. Otherwise return None. gen1 and alg_gen 2 are compatible by default.''' 
-    
     if mod_6_m2(gen, alg_gen):
         return None
     else: #concantenate
@@ -52,7 +49,6 @@ def m2_raw(gen, alg_gen):
     
 def mod_6_m2(gen, alg_gen):
     ''' Mod 6 relations for m2'''    
-
     l_tangle = [gen.tangle.orient_right_rhalf, gen.tangle.orient_left_rhalf]
     r_tangle = [alg_gen.tangle.orient_right_lhalf, alg_gen.tangle.orient_left_lhalf]  
     l_strands = gen.strands.right_converted
@@ -68,8 +64,7 @@ def del_l_raw(gen, is_B):
     gen is an element of CT-(T_i)
     gen is a generator in CT-(T_i)
     if is_B = True, apply it to B_j
-    if is_B = False apply it to A_j'''
-    
+    if is_B = False apply it to A_j'''  
     if is_B: # apply to B_j
         pass
     else:# apply to A_j apply to A_j left
@@ -81,8 +76,7 @@ def d_plus_raw_B(gen):
     Returns a list of elements of the form ((s1, s2), d_plus_raw_term), where
     s1 < s2 are pairs of strands that d_plus is applied, and
     diff_term is a generator in d_plus() obtained by uncrossing these two
-    strands. Together they specify all terms in gen.d_plus(). ''' 
-    
+    strands. Together they specify all terms in gen.d_plus(). '''    
     # applying it to line Bj
     lst = []
     l_strands = gen.strands.left_converted 
@@ -351,6 +345,7 @@ def helper(tang_left, tang_right, pair_1, pair_2, pair_3, is_left, option):
                     double_crossings.append(k)
         return double_crossings
     
+#### TEST CODE ####
 p1 = ((1,0.5),(1,4.5))
 p2 = ((1.5,1.5), (1.5, 3.5))
 p3 = ((2,1.5),(2,4.5))
