@@ -1048,25 +1048,60 @@ def replace_sd_1(raw, old,new, is_left):
         strand on the `is_left` side. '''
         if is_left:
             new_left = list(raw[0])
-            new_left.remove(old)
-            new_left.append(new)
+            for index, o_pair in enumerate(old):
+                new_left.remove(o_pair)
+                new_left.append(new[index])
             mod = (tuple(new_left), raw[1])
         else:
             new_right = list(raw[1])
-            new_right.remove(old)
-            new_right.append(new)
+            for index, o_pair in enumerate(old):
+                new_right.remove(o_pair)
+                new_right.append(new[index])
             mod = (raw[0], tuple(new_right))
         return mod
+
+#def replace_sd_2(raw, old, new):
+#    ''' helper method for `replace` in Stand Diagram Class.
+#    if old and new are tuples, call :
+#        replace_sd_2(raw,((0,1),()), ((10,10),()))
+#    If old and new are list objects, call:
+#     replace_sd_2(raw,[[(0,1)], []], [[(10,10)],[]])'''
+#    if len(old) != len(new):
+#        raise TypeError("The number of old pairs to be replaced do not equal that of new_strands.")
+#    if not((isinstance(old, list) and isinstance(new, list)) or \
+#         (isinstance(old, tuple) and isinstance(new, tuple))):
+#        raise TypeError(" Type Error: The given input `old` and `new` is not even in tuple or list format." )       
+#    old = list(old)
+#    new = list(new)
+#    
+#    print("Raw:{0}".format(raw))
+#    print("old:{0}".format(old))
+#    print("New:{0}".format(new))
+#    print("old[0]:{0}".format(old[0]))
+#    print("old[1]:{0}".format(old[1]))
+#    print("New[0]:{0}".format(new[0]))
+#    print("New[1]:{0}".format(new[1]))
+#    new_left = list(raw[0])
+#    new_right = list(raw[1])
+#    for index, value in enumerate(old[0]):   #change left half
+#        print("+++++++++cur val ++:{0}".format(value))
+#        new_left.remove(value)
+#        new_left.append(new[0][index])
+#    for index, value in enumerate(old[1]): #change right half
+#        new_right.remove(value)
+#        new_right.append(new[1][index])           
+#    return (tuple(new_left),tuple(new_right))
     
 def replace_sd_2(raw, old, new):
     ''' helper method for `replace` in Stand Diagram Class.
-    if old and new are tuples, call :
+    if old and new are tuples, by default change only one values, call :
         replace_sd_2(raw,((0,1),()), ((10,10),()))
     If old and new are list objects, call:
      replace_sd_2(raw,[[(0,1)], []], [[(10,10)],[]])'''
+    print("+++++++++entered ++++++")
     if len(old) != len(new):
         raise TypeError("The number of old pairs to be replaced do not equal that of new_strands.")
-    # if replace single pair
+    # if replace single pair ( -- when converting it to a "list" it takes off two tuple parenthesis, thats why
     if isinstance(old, tuple) and isinstance(new, tuple): 
         #replaces old[0] on the left with new_pair[0], and old[1] on the right with new_pair[1]
         print("Raw:{0}".format(raw))
@@ -1080,11 +1115,12 @@ def replace_sd_2(raw, old, new):
         if old[1] !=():
             new_right.remove(old[1])
             new_right.append(new[1])
-        return (tuple(new_left),tuple(new_right))
-    
+        return (tuple(new_left),tuple(new_right)) 
     elif isinstance(old, list) and isinstance(new, list):
         new_left = list(raw[0])
         new_right = list(raw[1])
+        print("New Left:{0}".format(new_left))
+        print("NEw Right:{0}".format(new_right))
         for index, value in enumerate(old[0]):   #change left half
             new_left.remove(value)
             new_left.append(new[0][index])
@@ -1100,7 +1136,7 @@ def sideStr(side):
     if side == ACTION_LEFT: return "LEFT"
     else: return "RIGHT"
     
-#
+
 #print(orientation_i(((1,3),(2,2)),False))
 #print("----1")
 #print(orientation_i(((1,2),(2,3)),False))
@@ -1175,16 +1211,17 @@ dict3=   SummableDict({
   "z": 1
 })
 
-
-
-    
 raw  = (((0,1),(2,2),(3,3)),((3,3),(1,5),(2,0)))
-a = conc_strands(raw[0],raw[1])
-c = replace_sd_2(raw,((0,1),()), ((10,10),()))
+#d = replace_sd_1(raw,[(3,3),(2,0)], [(0,0),(1,1)], False)
+#print(d)
+#a = conc_strands(raw[0],raw[1])
+c = replace_sd_2(raw,(((0,1),(2,2)),()), (((10,10),(20,20)),()))
 print(c)
-c= replace_sd_2(raw,[[(0,1)], []], [[(10,10)],[]])
-print(c)
-
+#c = replace_sd_2(raw,[[(0,1)], []], [[(10,10)],[]])
+#print("HERE")
+#print(c)
+#c = replace_sd_2(raw,[[(0,1)], []], [[(10,10)],[]] )
+#print(c)
 
 #a = generate_bijections_2(2,3)
 #print(a)

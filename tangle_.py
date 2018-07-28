@@ -929,14 +929,15 @@ class StrandDiagram(Generator):
     
     def replace(self, old, new, is_left):
         '''creates a new stranddiagram, with a new strand, with deleting pair
-        `old` on the `is_left`side and replacing it with a new one. ''' 
+        `old` on the `is_left`side and replacing it with a new one.
+        `old` and `new` can be an array too ''' 
         raw = self.strands.data.copy()
         mod = replace_sd_1(raw, old ,new, is_left)
         return StrandDiagram(self.parent, mod)
     
     def replace_2(self, old, new):
         ''' Upgraded version for `self_2` with input as list objects 
-        If old, and new is a `list` object,then do it accordingly.
+        Old, and New is a `list` object,then do it accordingly.
         By default, the number of old and new must equal, and be in order
         they are to be replaced, respectively.'''
         

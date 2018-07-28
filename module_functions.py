@@ -319,8 +319,7 @@ def d_m_raw_B(gen):
     return lst
 
 def mod_helper_2(gen,s1, s2):
-    '''returns the new generator, used for dm, d+, d- '''
-    
+    '''returns the new generator, used for dm(along Bj, d+, d-  '''
     if isinstance(s1[0][0], int):
         sd_1 = gen.strands.get_strand_index(s1, True)
         sd1_left = True
@@ -336,6 +335,7 @@ def mod_helper_2(gen,s1, s2):
     
     if sd1_left and sd2_left:
         new_strand = ((sd_1[0],sd_2[1]),(sd_2[0],sd_1[1]))
+        return ((sd_1[1], sd_2[1]),gen.replace
         return (sd_1[1], sd_2[1]), gen.replace((sd_1, sd_2), new_strand, True)
     elif not sd1_left and not sd2_left:
         new_strand = ((sd_1[0],sd_2[1]),(sd_2[0],sd_1[1]))
@@ -343,7 +343,7 @@ def mod_helper_2(gen,s1, s2):
     elif sd1_left and not sd2_left:
         new_strand = ((sd_1[0],sd_2[0]),(sd_1[1],sd_2[1]))
         return ((sd_1[1], sd_2[0]), gen.replace_2((sd_1, sd_2), new_strand))
-    else:
+    else: # almost never occurs 
         new_strand = ((sd_1[0],sd_2[0]),(sd_1[1],sd_2[1]))
         return (sd_1[1], sd_2[0], gen.replace_2((sd_1, sd_2), new_strand))
 
