@@ -130,22 +130,24 @@ def d_minus_raw(gen, is_B):
                 lst.append(mod_helper_2(gen, s1, s2, is_crossed))
     return lst
 
-def d_m_raw_A(gen, algebra, alg_left):
-    '''dm map that picks two pair of points along  A_j, bewteen 
+def d_m_raw_A(left_idem, gen):
+    '''dm map that picks two pair of points along  A_j, between x and algebra element
+    E_L_D(x), a left idempotent of generator x.
     Exchanges two ends of the corresponding pair of black strands.
     if `alg_left` == True, A(-dLT_i) * CT(T_ii)
     Returns a list of elements of the form ((s1, s2), d_m_raw_term), where
     s1 < s2 are pairs of strands that d_m is applied, and
         diff_term is a generator in d_plus() obtained by uncrossing or  crossing
         these two strands. Together they specify all terms in d_m()'''
-    
      # So far only implemented for A(-dLT_i) * CT(T_ii)
     
+    if not isinstance(left_idem, Simple_Strand):
+        raise TypeError("The left element, must be an idempotent in the form of Strand Algebra Element")
     lst =  []  # CB
-    l_strands = []
-    r_strands = []
-    t_l = []
-    t_r = []
+    l_strands = left_idem.strands.right_converted
+    r_strands = gen.strands.left_converted
+    t_l = left_idem.tangle.r_pairs_wc
+    t_r = gen.tangle.l_pairs_wc 
     types = mod_helper(l_strands, r_strands)
     # left no cross strands 
     l_horizontals = types[1]
@@ -288,8 +290,8 @@ def d_m_raw_B(gen):
             lst.append(mod_helper_2(gen, s1, s2, is_crossed))
     return lst
 
-def mod_helper_2(gen,s1, s2, is_crossed):
-    '''returns the new generator if is_crossed is false '''
+def mod_helper_2(gen,s1, s2):
+    '''returns the new generator, used for dm, d+, d- '''
     if not is_crossed:
         if isinstance(s1[0][0], int):
             sd_1 = gen.strands.get_strand_index(s1, True)
