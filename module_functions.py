@@ -7,8 +7,8 @@ import operator
 import statistics as st
 from utility import orientation,orientation_i, complement,generate_subset,\
  doescross, doescross_simple, intersections, simple_intersections, F2
-from Algebra import DGAlgebra, Element, Generator, Tensor, TensorGenerator
-from Algebra import E0
+from algebra import DGAlgebra, Element, Generator, Tensor, TensorGenerator
+from algebra import E0
 from utility import get_domain, get_range, generate_bijections, combinations, \
                 get_domain_dict, get_range_dict, doescross_simple_rc,in_between_list, \
                 reorganize_sign, reorganize_sign_2,dict_shift, get_start_dict, get_end_dict,\
@@ -19,13 +19,15 @@ def del_l_raw(gen):
     gen is an element of CT-(T_i).'''
     if not isinstance(gen, StrandDiagram):
         return NotImplemented
-    prod_raw = d_m_raw_A(gen)
-    if prod_raw is None:
-        return E0
-    if self.ring is F2: # cb and change
-        return prod_raw.elt()   
-    else:
-        pass
+    left_idem = gen.getLeftIdem()
+    prod_raw = d_m_raw_A(left_idem, gen)
+    # cb and change
+#    if prod_raw == []:
+#        return E0
+#    if self.ring is F2: # cb and change
+#        return prod_raw.elt()   
+#    else:
+#        pass
 
 def m2(gen, alg_gen):
     ''' m2 map that sends CT-(T) * I(-dRT) * A-(dRT) to CT-(T).
@@ -99,12 +101,9 @@ def d_plus_raw_B(gen):
                 lst.append(mod_helper_2(gen, s1, s2, is_crossed))
     return lst
 
-def d_minus_raw(gen, is_B):
+def d_minus_raw(gen):
     '''d_- map that introduces a black-black crossing to a generator 'gen`
     of CT-(T_i) contained in left halfs, (i, i+1/2).
-    if is_B == True, apply it to B_j
-    if is_B == False apply it to A_j 
-    
     Returns a list of elements of the form ((s1, s2), d_minus_raw_term), where
     s1 < s2 are pairs of strands that d_minus is applied, and
         diff_term is a generator in d_minus() obtained by crossing these two
@@ -118,7 +117,7 @@ def d_minus_raw(gen, is_B):
     horizontals = types[1]
     for s1, s2 in horizontals:
         is_crossed = False
-        for strands in r_strands: # check double black - black crossing
+        for strands in l_strands: # check double black - black crossing
             if mod_between(strands, (s1[0],s2[0]),(s1[1],s2[1]),True)==0:
                 is_crossed = True  
                 break
@@ -130,28 +129,41 @@ def d_minus_raw(gen, is_B):
                 lst.append(mod_helper_2(gen, s1, s2, is_crossed))
     return lst
 
-def mod_helper_3(left_idem, gen, s1, s2):
+def mod_helper_3(left_idem, gen, s1, s2): #CB
     ''' Used for `d_m_raw_A`.  Returns the new algebra element (class Simple_Strand)
     and generator(class: Strand Diagram) with s1 and s2 swapped.
     returns [new_algebra_element, generator]'''
-    sd_1 = gen.strands.get_strand_index(s1, True)
-    sd_2 = left_idem.strands.get_strand_index(s2, False)
+    
+    swap_pairs = []# which strand pairs are replaced along Aj
+    if isinstance(s1[0][0], int):
+        sd_1 = gen.strands.get_strand_index(s1, True)
+        swap_pairs.add(sd_1[0])
+    else:
+        sd_1 = left_idem.strands.get_strand_index(s1, False)
+        swap_pairs.add(sd_1[1])
+        
+    if isinstance(s2[0][0], int):
+        sd_2 =  gen.strands.get_strand_index(s2, True)
+        swap_pairs.add(sd_2[0])
+    else:
+        sd_2 = left_idem.strands.get_strand_index(s2, False)
+        swap_pairs.add(sd_2[1]) 
+    
     new_sd_1 = (sd_1[0],sd_2[0])
     new_sd_2 = (sd_1[1], sd_2[1])
-    return [left_idem.replace(s1,new_sd_1), gen.replace(s2, new_sd_2, True)] 
-    
+
+    return ( tuple(swap_pairs), [left_idem.replace(s1,new_sd_1), gen.replace(s2, new_sd_2, True)] 
 
 def d_m_raw_A(left_idem, gen):
     '''dm map that picks two pair of points along  A_j, between x and algebra element
     E_L_D(x), a left idempotent of generator x.
     Exchanges two ends of the corresponding pair of black strands.
     if `alg_left` == True, A(-dLT_i) * CT(T_ii)
-    Returns a list of elements of the form ((s1, s2), [], where
+    Returns a list of elements of the form ((s1, s2), [new_alg_element, new_gen], where
     s1 < s2 are pairs of strands that d_m is applied, and
         diff_term is a generator in d_plus() obtained by uncrossing or  crossing
         these two strands. Together they specify all terms in d_m()'''
-     # So far only implemented for A(-dLT_i) * CT(T_ii)
-    
+     # So far only implemented for A(-dLT_i) * CT(T_ii) 
     if not isinstance(left_idem, Simple_Strand):
         raise TypeError("The left element, must be an idempotent in the form of Strand Algebra Element")
     lst =  []  # CB
@@ -170,11 +182,11 @@ def d_m_raw_A(left_idem, gen):
                 break
         for tangle in t_r: # right half tangles
             x = (tuple(np.add(s1[0],(1,0))), tuple(np.add(s2[0],(1,0))))
-            if mod_between(tangle,x, False ) != -2:
+            if mod_between(tangle, (s1[1], s2[1]),x, False ) != -2:
                 is_crossed = True
                 break
         if not is_crossed:
-            pass
+            lst.append(((s1, s2), mod_helper_3(left_idem, gen, s1, s2)))
     # right cross strands
     r_cross = types[4]
     for s1, s2 in r_cross:
@@ -188,6 +200,8 @@ def d_m_raw_A(left_idem, gen):
             if abs(mod_between(tangle, (s1[0],s2[0]),(s1[1],s2[1]),False)) == 1:
                 is_crossed = True
                 break
+        if not is_crossed:
+            lst.append(((s1, s2), mod_helper_3(left_idem, gen, s1, s2)))
     # left below right
     l_below_r = types[5]
     for s1, s2 in l_below_r:
@@ -202,7 +216,9 @@ def d_m_raw_A(left_idem, gen):
         for tangle in t_r: # right half tangles
             if -2 < mod_between(tangle, mid_pair, right_pair, False) < 1:
                 is_crossed = True
-                break       
+                break    
+        if not is_crossed:
+            lst.append(((s1, s2), mod_helper_3(left_idem, gen, s1, s2)))
     # left above right strands
     l_above_r = types[6]
     for s1, s2 in l_above_r:
@@ -218,6 +234,8 @@ def d_m_raw_A(left_idem, gen):
             if mod_between(tangle, mid_pair, right_pair, False) > -1:
                 is_crossed = True
                 break
+        if not is_crossed:
+            lst.append(((s1, s2), mod_helper_3(left_idem, gen, s1, s2)))     
     return lst
 
 def d_m_raw_B(gen):
@@ -280,7 +298,7 @@ def d_m_raw_B(gen):
                 is_crossed = True
                 break
         if not is_crossed:
-            lst.append(mod_helper_2(gen, s1, s2, is_crossed)) 
+            lst.append(mod_helper_2(gen, s1, s2, is_crossed))
     # left below  right strands
     l_below_r = types[5]      
     for s1,s2 in l_below_r: #s1 on the left, s2 on the right
@@ -293,7 +311,7 @@ def d_m_raw_B(gen):
                 is_crossed = True
                 break
         for tangle in t_r:
-            if mod_between(tangle, mid_pair, right_pair, False) == 0:
+            if mod_between(tangle, mid_pair, right_pair, False) == 1:
                 is_crossed = True
                 break
         if not is_crossed:
@@ -302,33 +320,32 @@ def d_m_raw_B(gen):
 
 def mod_helper_2(gen,s1, s2):
     '''returns the new generator, used for dm, d+, d- '''
-    if not is_crossed:
-        if isinstance(s1[0][0], int):
-            sd_1 = gen.strands.get_strand_index(s1, True)
-            sd1_left = True
-        else:
-            sd_1 = gen.strands.get_strand_index(s1, False)
-            sd1_left = False  
-        if isinstance(s2[0][0], int):
-            sd_2 = gen.strands.get_strand_index(s2, True)
-            sd2_left = True
-        else:
-            sd_2 = gen.strands.get_strand_index(s2, False)
-            sd2_left = False    
-        if sd1_left and sd2_left:
-            new_strand = ((sd_1[0],sd_2[1]),(sd_2[0],sd_1[1]))
-            return (sd_1, sd_2), gen.replace((sd_1, sd_2), new_strand, True)
-        elif not sd1_left and not sd2_left:
-            new_strand = ((sd_1[0],sd_2[1]),(sd_2[0],sd_1[1]))
-            return ((sd_1, sd_2), gen.replace((sd_1, sd_2), new_strand, False))
-        elif sd1_left and not sd2_left:
-            new_strand = ((sd_1[0],sd_2[0]),(sd_1[1],sd_2[1]))
-            return ((sd_1, sd_2), gen.replace_2((sd_1, sd_2), new_strand))
-        else:
-            new_strand = ((sd_1[0],sd_2[0]),(sd_1[1],sd_2[1]))
-            return ((sd_1, sd_2, gen.replace_2((sd_1, sd_2), new_strand)))
+    
+    if isinstance(s1[0][0], int):
+        sd_1 = gen.strands.get_strand_index(s1, True)
+        sd1_left = True
     else:
-        return None
+        sd_1 = gen.strands.get_strand_index(s1, False)
+        sd1_left = False  
+    if isinstance(s2[0][0], int):
+        sd_2 = gen.strands.get_strand_index(s2, True)
+        sd2_left = True
+    else:
+        sd_2 = gen.strands.get_strand_index(s2, False)
+        sd2_left = False    
+    
+    if sd1_left and sd2_left:
+        new_strand = ((sd_1[0],sd_2[1]),(sd_2[0],sd_1[1]))
+        return (sd_1[1], sd_2[1]), gen.replace((sd_1, sd_2), new_strand, True)
+    elif not sd1_left and not sd2_left:
+        new_strand = ((sd_1[0],sd_2[1]),(sd_2[0],sd_1[1]))
+        return ((sd_1[0], sd_2[0]), gen.replace((sd_1, sd_2), new_strand, False))
+    elif sd1_left and not sd2_left:
+        new_strand = ((sd_1[0],sd_2[0]),(sd_1[1],sd_2[1]))
+        return ((sd_1[1], sd_2[0]), gen.replace_2((sd_1, sd_2), new_strand))
+    else:
+        new_strand = ((sd_1[0],sd_2[0]),(sd_1[1],sd_2[1]))
+        return (sd_1[1], sd_2[0], gen.replace_2((sd_1, sd_2), new_strand))
 
 def helper(tang_left, tang_right, pair_1, pair_2, pair_3, is_left, option):
     ''' Helper methods for diff methods. Assumes compatibility. Given a generator x, taking the is_left side, 

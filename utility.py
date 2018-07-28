@@ -1040,7 +1040,7 @@ def conc_strands(pair1, pair2):
     for l in left:
         for r in right:
             if l[1] == r[0]:
-                new.add((l[0],r[1]))
+                new.append((l[0],r[1]))
     return tuple(new)
 
 def replace_sd_1(raw, old,new, is_left):
@@ -1049,39 +1049,48 @@ def replace_sd_1(raw, old,new, is_left):
         if is_left:
             new_left = list(raw[0])
             new_left.remove(old)
-            new_left.add(new)
+            new_left.append(new)
             mod = (tuple(new_left), raw[1])
         else:
             new_right = list(raw[1])
             new_right.remove(old)
-            new_right.add(new)
+            new_right.append(new)
             mod = (raw[0], tuple(new_right))
         return mod
     
 def replace_sd_2(raw, old, new):
-    ''' helper method for `replace` in Stand Diagram Class.'''
+    ''' helper method for `replace` in Stand Diagram Class.
+    if old and new are tuples, call :
+        replace_sd_2(raw,((0,1),()), ((10,10),()))
+    If old and new are list objects, call:
+     replace_sd_2(raw,[[(0,1)], []], [[(10,10)],[]])'''
     if len(old) != len(new):
         raise TypeError("The number of old pairs to be replaced do not equal that of new_strands.")
     # if replace single pair
     if isinstance(old, tuple) and isinstance(new, tuple): 
         #replaces old[0] on the left with new_pair[0], and old[1] on the right with new_pair[1]
+        print("Raw:{0}".format(raw))
+        print("old:{0}".format(old))
+        print("New:{0}".format(new))
         new_left = list(raw[0])
-        new_left.remove(old[0])
-        new_left.add(new[0])
         new_right = list(raw[1])
-        new_right.remove(old[1])
-        new_right.add(new[1])
+        if old[0] != ():
+            new_left.remove(old[0])
+            new_left.append(new[0])
+        if old[1] !=():
+            new_right.remove(old[1])
+            new_right.append(new[1])
         return (tuple(new_left),tuple(new_right))
     
     elif isinstance(old, list) and isinstance(new, list):
         new_left = list(raw[0])
         new_right = list(raw[1])
-        for index, value in old[0]:   #change left half
+        for index, value in enumerate(old[0]):   #change left half
             new_left.remove(value)
-            new_left.add(new[0][index])
-        for index, value in old[1]: #change right half
+            new_left.append(new[0][index])
+        for index, value in enumerate(old[1]): #change right half
             new_right.remove(value)
-            new_right.add(new[1][index])           
+            new_right.append(new[1][index])           
         return (tuple(new_left),tuple(new_right))
     else:
         raise TypeError(" Type Error: The given input `old` and `new` is not even in tuple or list format." )       
@@ -1165,6 +1174,17 @@ dict3=   SummableDict({
   "y": 4,
   "z": 1
 })
+
+
+
+    
+raw  = (((0,1),(2,2),(3,3)),((3,3),(1,5),(2,0)))
+a = conc_strands(raw[0],raw[1])
+c = replace_sd_2(raw,((0,1),()), ((10,10),()))
+print(c)
+c= replace_sd_2(raw,[[(0,1)], []], [[(10,10)],[]])
+print(c)
+
 
 #a = generate_bijections_2(2,3)
 #print(a)
