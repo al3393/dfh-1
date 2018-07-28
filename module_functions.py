@@ -67,10 +67,7 @@ def mod_6_m2(gen, alg_gen):
     r_tangle = [alg_gen.tangle.orient_right_lhalf, alg_gen.tangle.orient_left_lhalf]  
     l_strands = gen.strands.right_converted
     r_strands = alg_gen.strands.left_converted
-    c_l = gen.strands.strandCrossing_coord(False)
-    c_r = gen.strands.strandCrossing_coord(True)
-    return len(mult_two_halfs(l_tangle, l_strands, r_tangle, r_strands)) > 0 \
-                or len(cross_twice(l_strands, r_strands, c_l, c_r)) > 0 
+    return len(mult_two_halfs(l_tangle, l_strands, r_tangle, r_strands)) > 0
     
 def d_plus_raw_B(gen):
     ''' d_+ map that smooths a black-black crossing of a generator `gen`
@@ -391,68 +388,41 @@ def helper(tang_left, tang_right, pair_1, pair_2, pair_3, is_left, option):
                 raise AssertionError("Something is wrong about `is_left`-- options arent either 4, 5, 6" )
     return mod
 
-## helper methods for mod 6() 
-    def mult_two_halfs(self,left_tangle, left_strands, right_tangle, right_strands):
-        ''' Multiplies two half tangles T1 and T2, and mod out first two
-        relations in PetKova paper Figure 6. 
-        left_tangle : [dict1, dict2] right half of tangle T1, array of dictionary objects of coordinates
-                      dict1 : orienting left, dict2: orienting right
-        right_tangle: [dict1, dict2] left half of tangle T2, a dictionary object of coordinates
-        left_strand: right half of tangle T1 strands, a dictionary object of coordinates
-        right_strand: left half of tangle T1 strands, a dictionary object of coordinates
-        
-        pairs is an array object, which elements of form [start tangle, start strand]
-        used for algebra multiplication and for other things later( d+, dm)'''
-        pairs = []
-        # tangle orienting right      
-        t1 = left_tangle[0]
-        t2 = right_tangle[0]   
-        if(self.is_left): # left side of the tangle
-            left_strands = dict_shift(left_strands,True)# shift left_strand to the right
-        else:
-            right_strands = dict_shift(right_strands,False) # shift left_strand to the right      
-        for k,v in t1.items():
-            for a,b in left_strands.items():
-                if doescross((k,v),(a,b)):
-                    new_tangle = (v,t2[v]) # on the right
-                    new_strand = (b, right_strands[b]) # on the right
-                    if doescross(new_tangle, new_strand):
-                        pairs.append([k,a])       
-        # tangle orienting left
-        t1 = left_tangle[1]
-        t2 = right_tangle[1]               
-        for k,v in t2.items():
-            for b,c in right_strands.items():
-                if doescross((v,k),(b,c)):
-                    new_tangle = (t1[v], v) # on the left        
-                    # search for a strand in left_strand, that ends in b
-                    for key,value in left_strands.items():
-                        if value == b:
-                            new_strand = (key,b) # get the left coordinate     
-                    if doescross(new_tangle, new_strand):
-                        pairs.append([k, c])
-        return pairs
-
-    def cross_twice(self,left_strands, right_strands, c_l, c_r): # cb and change it to true or false later if uncessary
-        '''Given left_strand, and right_strand, returns double crossings,
-        assumes the strands are multiplicable. 
-        c_1 is strandCrossing(False) called from the left_strands
-        c_2 is the strandCrossing(True) called from right_strands'''
-        # check if compatible cb and remove
-        if(self.is_left): # left side of  the tangle
-            left_strands = dict_shift(left_strands,True)# shift left_strand to the right
-            c_l = dict_shift_double(c_l ,True)
-        else:
-            right_strands = dict_shift(right_strands,False) # shift left_strand to the right 
-            c_r = dict_shift_double(c_r ,False)        
-        if not (get_range_dict(left_strands) == get_domain_dict(right_strands)):
-            raise TypeError ("strand boundaries don't line up")         
-        double_crossings = []
-        for k in list(c_l.items()):
-            for v in list(c_r.items()):
-                if get_end_dict(k) == get_start_dict(v):
-                    double_crossings.append(k)
-        return double_crossings
+## helper methods for mod_6_m2() to apply mod relations in figure 6 PetKova Paper
+def mult_two_halfs(self,left_tangle, left_strands, right_tangle, right_strands):
+    ''' Multiplies two half tangles T1 and T2, and mod out first two
+    relations in PetKova paper Figure 6. 
+    left_tangle : [dict1, dict2] right half of tangle T1, array of dictionary objects of coordinates
+                  dict1 : orienting left, dict2: orienting right
+    right_tangle: [dict1, dict2] left half of tangle T2, a dictionary object of coordinates
+    left_strand: right half of tangle T1 strands, a dictionary object of coordinates
+    right_strand: left half of tangle T1 strands, a dictionary object of coordinates
+    pairs is an array object, which elements of form [start tangle, start strand]'''
+    pairs = []
+    # tangle orienting right      
+    t1 = left_tangle[0]
+    t2 = right_tangle[0]   
+    for k,v in t1.items():
+        for a,b in left_strands.items():
+            if doescross((k,v),(a,b)):
+                new_tangle = (v,t2[v]) # on the right
+                new_strand = (b, right_strands[b]) # on the right
+                if doescross(new_tangle, new_strand):
+                    pairs.append([k,a])       
+    # tangle orienting left
+    t1 = left_tangle[1]
+    t2 = right_tangle[1]               
+    for k,v in t2.items():
+        for b,c in right_strands.items():
+            if doescross((v,k),(b,c)):
+                new_tangle = (t1[v], v) # on the left        
+                # search for a strand in left_strand, that ends in b
+                for key,value in left_strands.items():
+                    if value == b:
+                        new_strand = (key,b) # get the left coordinate     
+                if doescross(new_tangle, new_strand):
+                    pairs.append([k, c])
+    return pairs
     
 #### TEST CODE ####
 p1 = ((1,0.5),(1,4.5))
