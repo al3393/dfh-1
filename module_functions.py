@@ -131,28 +131,36 @@ def d_minus_raw(gen):
 
 def mod_helper_3(left_idem, gen, s1, s2): #CB
     ''' Used for `d_m_raw_A`.  Returns the new algebra element (class Simple_Strand)
-    and generator(class: Strand Diagram) with s1 and s2 swapped.
+    and generator(class: Strand Diagram) with index s1 and s2 swapped.
     returns [new_algebra_element, generator]'''
     
     swap_pairs = []# which strand pairs are replaced along Aj
-    if isinstance(s1[0][0], int):
+    if isinstance(s1[0][0], int): # i.e a generator element
         sd_1 = gen.strands.get_strand_index(s1, True)
         swap_pairs.add(sd_1[0])
-    else:
+        sd1_left = False
+    else: # i.e an algebra element
         sd_1 = left_idem.strands.get_strand_index(s1, False)
         swap_pairs.add(sd_1[1])
-        
-    if isinstance(s2[0][0], int):
+        sd1_left = True      
+    if isinstance(s2[0][0], int): # i.e a generator element
         sd_2 =  gen.strands.get_strand_index(s2, True)
         swap_pairs.add(sd_2[0])
-    else:
+        sd2_left = False
+    else: # i.e an algebra element
         sd_2 = left_idem.strands.get_strand_index(s2, False)
         swap_pairs.add(sd_2[1]) 
+        sd2_left = True
     
+    if sd_1_left and sd2_left:
+        
+        
+        
+        
     new_sd_1 = (sd_1[0],sd_2[0])
     new_sd_2 = (sd_1[1], sd_2[1])
 
-    return ( tuple(swap_pairs), [left_idem.replace(s1,new_sd_1), gen.replace(s2, new_sd_2, True)] 
+    return (tuple(swap_pairs), [left_idem.replace(s1,new_sd_1), gen.replace(s2, new_sd_2, True)])
 
 def d_m_raw_A(left_idem, gen):
     '''dm map that picks two pair of points along  A_j, between x and algebra element
@@ -335,18 +343,16 @@ def mod_helper_2(gen,s1, s2):
     
     if sd1_left and sd2_left:
         new_strand = ((sd_1[0],sd_2[1]),(sd_2[0],sd_1[1]))
-        return ((sd_1[1], sd_2[1]),gen.replace
         return (sd_1[1], sd_2[1]), gen.replace((sd_1, sd_2), new_strand, True)
     elif not sd1_left and not sd2_left:
         new_strand = ((sd_1[0],sd_2[1]),(sd_2[0],sd_1[1]))
         return ((sd_1[0], sd_2[0]), gen.replace((sd_1, sd_2), new_strand, False))
     elif sd1_left and not sd2_left:
-        new_strand = ((sd_1[0],sd_2[0]),(sd_1[1],sd_2[1]))
-        return ((sd_1[1], sd_2[0]), gen.replace_2((sd_1, sd_2), new_strand))
+        new_strand = [[(sd_1[0],sd_2[0])],[(sd_1[1],sd_2[1])]]
+        return ((sd_1[1], sd_2[0]), gen.replace_2([[sd_1],[sd_2]], new_strand))
     else: # almost never occurs 
-        new_strand = ((sd_1[0],sd_2[0]),(sd_1[1],sd_2[1]))
-        return (sd_1[1], sd_2[0], gen.replace_2((sd_1, sd_2), new_strand))
-
+        return NotImplemented
+    
 def helper(tang_left, tang_right, pair_1, pair_2, pair_3, is_left, option):
     ''' Helper methods for diff methods. Assumes compatibility. Given a generator x, taking the is_left side, 
     exchanges pairs = (a,b), it seems whether the 
