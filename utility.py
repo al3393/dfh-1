@@ -1210,13 +1210,13 @@ dict3=   SummableDict({
   "y": 4,
   "z": 1
 })
-
-raw  = (((0,1),(2,2),(3,3)),((3,3),(1,5),(2,0)))
-#d = replace_sd_1(raw,[(3,3),(2,0)], [(0,0),(1,1)], False)
-#print(d)
-#a = conc_strands(raw[0],raw[1])
-c = replace_sd_2(raw,(((0,1),(2,2)),()), (((10,10),(20,20)),()))
-print(c)
+#
+#raw  = (((0,1),(2,2),(3,3)),((3,3),(1,5),(2,0)))
+##d = replace_sd_1(raw,[(3,3),(2,0)], [(0,0),(1,1)], False)
+##print(d)
+##a = conc_strands(raw[0],raw[1])
+#c = replace_sd_2(raw,(((0,1),(2,2)),()), (((10,10),(20,20)),()))
+#print(c)
 #c = replace_sd_2(raw,[[(0,1)], []], [[(10,10)],[]])
 #print("HERE")
 #print(c)

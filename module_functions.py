@@ -1,18 +1,17 @@
-from tangle_ import Simple_Strand, StrandAlgebra,TANGLE,Strands, Idempotent, StrandDiagram
+from tangle_ import Simple_Strand, StrandAlgebra,TANGLE,Strands, Idempotent, StrandDiagram,TangleModule
 from utility import mod_helper, mod_between
 import numpy as np
-
 import operator
 #from algebra import DGAlgebra, Element, Generator, Tensor, TensorGenerator
 import statistics as st
 from utility import orientation,orientation_i, complement,generate_subset,\
  doescross, doescross_simple, intersections, simple_intersections, F2
-from algebra import DGAlgebra, Element, Generator, Tensor, TensorGenerator
-from algebra import E0
+from Algebra import DGAlgebra, Element, Generator, Tensor, TensorGenerator
+from Algebra import E0
 from utility import get_domain, get_range, generate_bijections, combinations, \
                 get_domain_dict, get_range_dict, doescross_simple_rc,in_between_list, \
                 reorganize_sign, reorganize_sign_2,dict_shift, get_start_dict, get_end_dict,\
-                dict_shift_double, doescross_bool, mod_between, mod_helper
+                dict_shift_double, doescross_bool, mod_between, mod_helper,F2
 
 def del_l_raw(gen):
     ''' del_L map that sends CT-(T_i) to  A-(dRT) * I(-dRT) * CT-(T_i)
@@ -425,11 +424,19 @@ def mult_two_halfs(self,left_tangle, left_strands, right_tangle, right_strands):
     return pairs
     
 #### TEST CODE ####
-p1 = ((1,0.5),(1,4.5))
-p2 = ((1.5,1.5), (1.5, 3.5))
-p3 = ((2,1.5),(2,4.5))
-t_left = {(1,7):(1.5,3), (1,2):(1.5,3)}
-t_right = {(1.5,3):(2,5)}
+dic = {(4,4):(3.5,4), (3.5,4):(3,4), (3,2):(3.5,2), (3.5,2):(4,3), (4,2):(3.5,3), (3.5,3):(3,3), (3,1):(3.5,1), (3.5,1):(4,1)}
+tang = TANGLE(dic)
+strands = (((3,4),(1,2),(2,1)),((3,2),(0,1)))
+sdigram = StrandDiagram(tang,strands)
 
-print(helper(t_left,t_right, p1, p2, p3, False, 6 ))
-         
+# figure 9 PetKova Paper
+
+
+#p1 = ((1,0.5),(1,4.5))
+#p2 = ((1.5,1.5), (1.5, 3.5))
+#p3 = ((2,1.5),(2,4.5))
+#t_left = {(1,7):(1.5,3), (1,2):(1.5,3)}
+#t_right = {(1.5,3):(2,5)}
+#
+#print(helper(t_left,t_right, p1, p2, p3, False, 6 ))
+#         
