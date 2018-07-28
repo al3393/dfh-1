@@ -152,15 +152,21 @@ def mod_helper_3(left_idem, gen, s1, s2): #CB
         swap_pairs.add(sd_2[1]) 
         sd2_left = True
     
-    if sd_1_left and sd2_left:
-        
-        
-        
-        
-    new_sd_1 = (sd_1[0],sd_2[0])
-    new_sd_2 = (sd_1[1], sd_2[1])
-
-    return (tuple(swap_pairs), [left_idem.replace(s1,new_sd_1), gen.replace(s2, new_sd_2, True)])
+    if sd1_left and sd2_left: # two algebra elements
+        new_strand = [(sd_1[0],sd_2[1]), (sd_2[0], sd_1[1])]
+        return ((sd_1[1],sd_2[1]), left_idem.replace([sd_1, sd_2],new_strand), gen)
+    
+    elif not sd1_left and not sd2_left: # two strand diagram elements
+        new_strand = [(sd_1[0],sd_2[1]), (sd_2[0], sd_1[1])]
+        return ((sd_1[0],sd_2[0]), left_idem, gen.replace([sd_1,sd_2], new_strand, True))
+    
+    elif sd1_left and not sd2_left: # left algebra element, right strand diagram element
+        new_strand_alg = [(sd_1[0], sd_2[0])]
+        new_strand_gen = [(sd_1[1],sd_2[1])]
+        return ((sd_1[1],sd_2[0]),left_idem.replace([sd_1],new_strand_alg), \
+                    gen.replace([sd_2], new_strand_gen, True))
+    else: # never occurs
+        return NotImplemented
 
 def d_m_raw_A(left_idem, gen):
     '''dm map that picks two pair of points along  A_j, between x and algebra element
