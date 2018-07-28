@@ -130,12 +130,23 @@ def d_minus_raw(gen, is_B):
                 lst.append(mod_helper_2(gen, s1, s2, is_crossed))
     return lst
 
+def mod_helper_3(left_idem, gen, s1, s2):
+    ''' Used for `d_m_raw_A`.  Returns the new algebra element (class Simple_Strand)
+    and generator(class: Strand Diagram) with s1 and s2 swapped.
+    returns [new_algebra_element, generator]'''
+    sd_1 = gen.strands.get_strand_index(s1, True)
+    sd_2 = left_idem.strands.get_strand_index(s2, False)
+    new_sd_1 = (sd_1[0],sd_2[0])
+    new_sd_2 = (sd_1[1], sd_2[1])
+    return [left_idem.replace(s1,new_sd_1), gen.replace(s2, new_sd_2, True)] 
+    
+
 def d_m_raw_A(left_idem, gen):
     '''dm map that picks two pair of points along  A_j, between x and algebra element
     E_L_D(x), a left idempotent of generator x.
     Exchanges two ends of the corresponding pair of black strands.
     if `alg_left` == True, A(-dLT_i) * CT(T_ii)
-    Returns a list of elements of the form ((s1, s2), d_m_raw_term), where
+    Returns a list of elements of the form ((s1, s2), [], where
     s1 < s2 are pairs of strands that d_m is applied, and
         diff_term is a generator in d_plus() obtained by uncrossing or  crossing
         these two strands. Together they specify all terms in d_m()'''
@@ -156,7 +167,6 @@ def d_m_raw_A(left_idem, gen):
         for tangle in t_l: # left half tangles
             if abs(mod_between(tangle, (s1[0],s2[0]),(s1[1],s2[1]), True)) == 1:
                 is_crossed = True
-                break
                 break
         for tangle in t_r: # right half tangles
             x = (tuple(np.add(s1[0],(1,0))), tuple(np.add(s2[0],(1,0))))
