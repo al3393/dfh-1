@@ -133,33 +133,26 @@ def mod_helper_3(left_idem, gen, s1, s2): #CB
     ''' Used for `d_m_raw_A`.  Returns the new algebra element (class Simple_Strand)
     and generator(class: Strand Diagram) with index s1 and s2 swapped.
     returns [new_algebra_element, generator]'''
-    
-    swap_pairs = []# which strand pairs are replaced along Aj
+
     if isinstance(s1[0][0], int): # i.e a generator element
         sd_1 = gen.strands.get_strand_index(s1, True)
-        swap_pairs.add(sd_1[0])
         sd1_left = False
     else: # i.e an algebra element
         sd_1 = left_idem.strands.get_strand_index(s1, False)
-        swap_pairs.add(sd_1[1])
         sd1_left = True      
     if isinstance(s2[0][0], int): # i.e a generator element
         sd_2 =  gen.strands.get_strand_index(s2, True)
-        swap_pairs.add(sd_2[0])
         sd2_left = False
     else: # i.e an algebra element
         sd_2 = left_idem.strands.get_strand_index(s2, False)
-        swap_pairs.add(sd_2[1]) 
         sd2_left = True
     
     if sd1_left and sd2_left: # two algebra elements
         new_strand = [(sd_1[0],sd_2[1]), (sd_2[0], sd_1[1])]
-        return ((sd_1[1],sd_2[1]), left_idem.replace([sd_1, sd_2],new_strand), gen)
-    
+        return ((sd_1[1],sd_2[1]), left_idem.replace([sd_1, sd_2],new_strand), gen)   
     elif not sd1_left and not sd2_left: # two strand diagram elements
         new_strand = [(sd_1[0],sd_2[1]), (sd_2[0], sd_1[1])]
-        return ((sd_1[0],sd_2[0]), left_idem, gen.replace([sd_1,sd_2], new_strand, True))
-    
+        return ((sd_1[0],sd_2[0]), left_idem, gen.replace([sd_1,sd_2], new_strand, True))  
     elif sd1_left and not sd2_left: # left algebra element, right strand diagram element
         new_strand_alg = [(sd_1[0], sd_2[0])]
         new_strand_gen = [(sd_1[1],sd_2[1])]
@@ -173,7 +166,7 @@ def d_m_raw_A(left_idem, gen):
     E_L_D(x), a left idempotent of generator x.
     Exchanges two ends of the corresponding pair of black strands.
     if `alg_left` == True, A(-dLT_i) * CT(T_ii)
-    Returns a list of elements of the form ((s1, s2), [new_alg_element, new_gen], where
+    Returns a list of elements of the form ((s1, s2), new_alg_element, new_gen), where
     s1 < s2 are pairs of strands that d_m is applied, and
         diff_term is a generator in d_plus() obtained by uncrossing or  crossing
         these two strands. Together they specify all terms in d_m()'''
@@ -200,7 +193,7 @@ def d_m_raw_A(left_idem, gen):
                 is_crossed = True
                 break
         if not is_crossed:
-            lst.append(((s1, s2), mod_helper_3(left_idem, gen, s1, s2)))
+            lst.append(mod_helper_3(left_idem, gen, s1, s2))
     # right cross strands
     r_cross = types[4]
     for s1, s2 in r_cross:
@@ -215,7 +208,7 @@ def d_m_raw_A(left_idem, gen):
                 is_crossed = True
                 break
         if not is_crossed:
-            lst.append(((s1, s2), mod_helper_3(left_idem, gen, s1, s2)))
+            lst.append(mod_helper_3(left_idem, gen, s1, s2))
     # left below right
     l_below_r = types[5]
     for s1, s2 in l_below_r:
@@ -232,7 +225,7 @@ def d_m_raw_A(left_idem, gen):
                 is_crossed = True
                 break    
         if not is_crossed:
-            lst.append(((s1, s2), mod_helper_3(left_idem, gen, s1, s2)))
+            lst.append(mod_helper_3(left_idem, gen, s1, s2))
     # left above right strands
     l_above_r = types[6]
     for s1, s2 in l_above_r:
@@ -249,7 +242,7 @@ def d_m_raw_A(left_idem, gen):
                 is_crossed = True
                 break
         if not is_crossed:
-            lst.append(((s1, s2), mod_helper_3(left_idem, gen, s1, s2)))     
+            lst.append(mod_helper_3(left_idem, gen, s1, s2))  
     return lst
 
 def d_m_raw_B(gen):
