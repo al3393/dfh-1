@@ -1,6 +1,6 @@
 import operator
 from copy import deepcopy
-#from algebra import DGAlgebra, Element, Generator, Tensor, TensorGenerator
+#from algebra import DGAlgebra, Element, Generator, Tensor, TensorGenerator, 
 import statistics as st
 from utility import orientation,orientation_i, complement,generate_subset,\
  doescross, doescross_simple, intersections, simple_intersections, F2
@@ -9,7 +9,8 @@ from Algebra import E0
 from utility import get_domain, get_range, generate_bijections, combinations, \
                 get_domain_dict, get_range_dict, doescross_simple_rc,in_between_list, \
                 reorganize_sign, reorganize_sign_2,dict_shift, get_start_dict, get_end_dict,\
-                dict_shift_double, doescross_bool, mod_between, mod_helper, replace_sd_1, replace_sd_2,generate_bijections_same
+                dict_shift_double, doescross_bool, mod_between, mod_helper, replace_sd_1, replace_sd_2,generate_bijections_same,\
+                generate_bijections_3
 '''Elementary tangles and its algebras'''
 
 class TANGLE:
@@ -394,7 +395,7 @@ class TANGLE:
             idems.append(Idempotent(self, perm, is_left))      
         return idems
     
-    def getAlgebra(self, is_left, parent): #cb and fill in
+    def getAlgebra(self, is_left, parent): #CB and check
         '''Get the list of generators of the strand algebra, depending on variable `is_left`.
         If `is_left` is true, takes into account of left boundary of this tangle
         `parent` is the Strand Algebra of corresponding `is_left` side '''
@@ -406,10 +407,19 @@ class TANGLE:
         bij = generate_bijections_same[n]
         for bijection in bij:
             alg_gen.append(Simple_Strand(parent, is_left, tuple(bijection)))
+        return alg_gen
 
-    def getStrandDiagrams(self,algebra): # cb and fillin 
-        ''' Get the list of generators of CT(Ti). '''
-        
+    def getStrandDiagrams(self,p_module): # cb and check 
+        ''' Get the list of generators of CT(Ti) ( the parent module). '''
+        gen = []
+        n = len(self.alpha_left)-1
+        m = len(self.beta) - 1
+        k = len(self.alpha_right) -1
+        bij = generate_bijections_3(n,m,k)
+        for bijection in bij:
+            gen.append(StrandDiagram(p_module,(tuple(bijection[0]),tuple(bijection[1]))))
+        return gen
+    
 class Idempotent(tuple):
     '''Represents an idempotent in a certain tangle. Stored as a tuple of occupied pairs.'''
     def __new__(cls, p_tangle, data, is_left = True):
@@ -1214,7 +1224,7 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
             
     def getGenerators(self): # cb and fill in 
         ''' Returns the list of generators.'''
-        pass
+        return self.p_tangle.getAlgebra(self.is_left, aself)
     
     def getIdempotents(self): #cb and fill in
         ''' Returns the set of Idempotents, using the corresponding function in `tangle`'''
