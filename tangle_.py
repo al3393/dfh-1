@@ -1222,11 +1222,11 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
                 arr.append(s_pair)   
         return arr
             
-    def getGenerators(self): # cb and fill in 
+    def getGenerators(self): 
         ''' Returns the list of generators.'''
-        return self.p_tangle.getAlgebra(self.is_left, aself)
+        return self.p_tangle.getAlgebra(self.is_left, self)
     
-    def getIdempotents(self): #cb and fill in
+    def getIdempotents(self): 
         ''' Returns the set of Idempotents, using the corresponding function in `tangle`'''
         return self.p_tangle.getIdempotents(self.is_left)
     

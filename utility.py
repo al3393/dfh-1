@@ -1260,5 +1260,7 @@ dict3=   SummableDict({
 #a = generate_bijections_same(1)
 #print(a)
 
-#a = generate_bijections_3(1,4,3)
+a = generate_bijections_3(1,1,1)
+for bij in a:
+    print(tuple(bij[0]))
 #print(a)
