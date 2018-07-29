@@ -9,7 +9,7 @@ from Algebra import E0
 from utility import get_domain, get_range, generate_bijections, combinations, \
                 get_domain_dict, get_range_dict, doescross_simple_rc,in_between_list, \
                 reorganize_sign, reorganize_sign_2,dict_shift, get_start_dict, get_end_dict,\
-                dict_shift_double, doescross_bool, mod_between, mod_helper, replace_sd_1, replace_sd_2
+                dict_shift_double, doescross_bool, mod_between, mod_helper, replace_sd_1, replace_sd_2,generate_bijections_same
 '''Elementary tangles and its algebras'''
 
 class TANGLE:
@@ -367,7 +367,7 @@ class TANGLE:
             alpha = tuple(sorted(i for i in range(self.num_alpha_right())))
             return complement(alpha,data)
              
-    def idem(self,data):
+    def idem(self,data):# CB and remove
         raise NotImplementedError
 #    def grading(self, maslov, alexander): #cb 
 #        grading_group = GradingGroup(self)
@@ -381,7 +381,7 @@ class TANGLE:
         Simple_Strand'''
         self.is_simple = True
     
-    def getIdempotents(self, is_left): # cb and fill in
+    def getIdempotents(self, is_left): 
         '''Get the list of idempotents depending on variable `is_left`.
         If `is_left` is true, takes into account of left boundary of this tangle''' 
         idems = [] 
@@ -394,10 +394,18 @@ class TANGLE:
             idems.append(Idempotent(self, perm, is_left))      
         return idems
     
-    def getAlgebra(self, is_left): #cb and fill in
+    def getAlgebra(self, is_left, parent): #cb and fill in
         '''Get the list of generators of the strand algebra, depending on variable `is_left`.
-        If `is_left` is true, takes into account of left boundary of this tangle'''
-        raise NotImplementedError
+        If `is_left` is true, takes into account of left boundary of this tangle
+        `parent` is the Strand Algebra of corresponding `is_left` side '''
+        alg_gen = []
+        if is_left:
+            n = len(self.alpha_left)-1
+        else:
+            n = len(self.alpha_right) -1
+        bij = generate_bijections_same[n]
+        for bijection in bij:
+            alg_gen.append(Simple_Strand(parent, is_left, tuple(bijection)))
 
     def getStrandDiagrams(self,algebra): # cb and fillin 
         ''' Get the list of generators of CT(Ti). '''
@@ -795,9 +803,6 @@ class StrandDiagram(Generator):
     def __repr__(self):
         return str(self)
     
-    def isIdempotent(self):# cb and delete remove
-        pass
-    
     def getGrading(self): # cb and modify
         return self.tangle.grading(self.maslov(), self.alexander())
     
@@ -874,9 +879,8 @@ class StrandDiagram(Generator):
                 if value in self.tangle.orient_left_lhalf.keys():
                     num += 1      
         if option == 6:
-            # tangle_left on left half tangle for maslov (xi-)
-            num = len(self.tangle.orient_left_lhalf)
-    
+            # tangle_left on left half tangle for maslov (xi-) and (xi+)
+            num = len(self.tangle.orient_left_lhalf) + len(self.tangle.orient_left_rhalf)
         return num
                 
     def maslov(self):
@@ -1027,9 +1031,8 @@ class Simple_Strand(Generator):
                     pairs.update({coord: np1, np1: np2})             
         return pairs
     
-    def get_tuple_strand(self,pairs): # cb an change
+    def get_tuple_strand(self,pairs): 
         ''' returns the tuple that is needed for strand object '''
-        # quite necessary - will come back and remove if unncessary
         #if self.is_left true, then make bijections look  --- then up/down
         if self.is_left == True:
             right_half = tuple((k,k) for k in self.s)
@@ -1126,8 +1129,8 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
     
     def __hash__(self):
         return hash((self.tangle, self.is_left))
-    
-    def getStrandDiagram(self,pairs):
+     
+    def getStrandDiagram(self,pairs): # CB and remove
         ''' Pairs consist of tuples ((1,3), (2,4)) etc.. i.e., Bijections of
         S to T C [n]'''
         return Simple_Strand(self, self.is_left, pairs)
@@ -1214,8 +1217,8 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
         pass
     
     def getIdempotents(self): #cb and fill in
-        ''' Returns the set of Idempotents, using the corresponding function in PMC'''
-        pass
+        ''' Returns the set of Idempotents, using the corresponding function in `tangle`'''
+        return self.p_tangle.getIdempotents(self.is_left)
     
     def _multiplyRaw(self, gen1, gen2):
         ''' If gen1 and gen2 can be multiplied, return the generator that is
@@ -1285,10 +1288,7 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
         right_strand: left half of tangle T2 strands, a dictionary object of coordinates
         
         pairs is an array object, which elements of form [start tangle, start strand]
-        used for algebra multiplication and for other things later( d+, dm)'''
-        # cb and change it to true or false later if uncessary
-        # cb and fix - need to consider left or right        
-        #assume split_cup and cap for now cb and check with akram
+        used for algebra multiplication and for other things later( d+, dm)'''     
         pairs = []
         # tangle orienting right      
         t1 = left_tangle[0]
