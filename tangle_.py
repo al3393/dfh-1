@@ -1,4 +1,5 @@
 import operator
+from copy import deepcopy
 #from algebra import DGAlgebra, Element, Generator, Tensor, TensorGenerator
 import statistics as st
 from utility import orientation,orientation_i, complement,generate_subset,\
@@ -28,9 +29,6 @@ class TANGLE:
                
         self.pairs = pairs
         self.n = len(pairs) # assume unique pairs 
-        # Whether at the boundary
-        #self.only_left_half = False  
-        #self.only_right_half = False   
         self.i_minus, self.i_mid, self.i_plus, self.only_left_half,self.only_right_half =  self.get_x_coord(self.pairs)  
         self.l_pairs, self.r_pairs = self.split_pairs(self.i_minus,self.i_mid, self.i_plus, self.pairs)
         self.left_boundary = self.getleft()
@@ -418,7 +416,6 @@ class Idempotent(tuple):
             self.sign_seq = self.p_tangle.left_boundary
         else:
             self.sign_seq = self.p_tangle.right_boundary
-            
         self.tangle = TANGLE(self.get_tangle_pairs())
         self.tangle.is_simple_tangle()
         self.pairs = self.get_tup()
@@ -470,6 +467,7 @@ class Idempotent(tuple):
                     if sign != 1:
                         raise ValueError("Something is wrong with the sign")
                     pairs.update({coord: np1, np1: np2})
+        return pairs
    
     def get_tup(self):
         return tuple((k,k) for k in self)
@@ -501,7 +499,7 @@ class Strands(tuple):
         self.tangle = tangle
         self.data = data
         self.convert() # cb and remove later
-        self.converted  = self.left_converted.copy()
+        self.converted  = self.left_converted.copy() #dictionary format
         self.converted.update(self.right_converted)
         self.left_crossings = self.strandCrossing(True) #list of crossings on the left
         self.right_crossings = self.strandCrossing(False)        
@@ -553,7 +551,6 @@ class Strands(tuple):
         else:
             for strand in self[1]:
                 occupied.append(strand[0])
-        
         return tuple(sorted(occupied))
     
     def leftCompatible(self,sa_gen):
@@ -678,9 +675,7 @@ class Strands(tuple):
         converted = {}      
         for k, v in raw:
             new_k = self.convert_s_to_coord(k, left_half)
-           #print("new_k{0}".format(new_k))
             new_v = self.convert_s_to_coord(v, left_half)
-            #print("new_v{0}".format(new_v))
             converted.update({new_k: new_v})
         return converted
     
@@ -736,20 +731,14 @@ class Strands(tuple):
         with natural orientation from left to right'''     
         left_converted = {}
         right_converted ={}
-        print("++++++")
-        print(self.tangle.alpha_left)
-        print("++++++")
-        #left half
-        for strand in self[0]:
+        for strand in self[0]: #left half
             start = self.tangle.alpha_left[strand[0]]
             end = self.tangle.beta[strand[1]]
             left_converted.update({start:end})
-        #right half
-        for strand in self[1]:
+        for strand in self[1]:#right half
             start = self.tangle.beta[strand[0]]
             end = self.tangle.alpha_right[strand[1]]
             right_converted.update({start:end})
-        
         self.left_converted = left_converted
         self.right_converted = right_converted
     
@@ -779,22 +768,15 @@ class StrandDiagram(Generator):
         
         Generator.__init__(self,parent)
         self.tangle = parent.tangle
-   
         self.strands = strands
         if not isinstance(self.strands, Strands):
             self.strands = Strands(self.tangle, self.strands)
-        
         if (len(self.strands[0]) + len(self.strands[1])) != len(self.tangle.beta):
             raise TypeError("The beta curves are not filled.")
-        
-        # Calculate left idempotent
-        if left_idem is None:
-            self.left_idem = self.strands.get_left_idem()
-        
-        # Calculate right idempotent
-        if right_idem is None:
-            self.right_idem = self.strands.get_right_idem()
-            
+        if left_idem is None: # Calculate left idempotent
+            self.left_idem = self.strands.get_left_idem()  
+        if right_idem is None: # Calculate right idempotent
+            self.right_idem = self.strands.get_right_idem()      
         self.maslov = self.maslov()
         self.alexander = self.alexander()
     
@@ -926,7 +908,7 @@ class StrandDiagram(Generator):
         '''creates a new stranddiagram, with a new strand, with deleting pair
         `old` on the `is_left`side and replacing it with a new one.
         `old` and `new` can be an array too ''' 
-        raw = self.strands.data.copy()
+        raw = deepcopy(self.strands.data)
         mod = replace_sd_1(raw, old ,new, is_left)
         return StrandDiagram(self.parent, mod)
     
@@ -936,7 +918,7 @@ class StrandDiagram(Generator):
         By default, the number of old and new must equal, and be in order
         they are to be replaced, respectively.'''
         
-        raw = self.strands.data.copy()
+        raw = deepcopy(self.strands.data)
         mod = replace_sd_2(raw, old, new)
         return StrandDiagram(self.parent, mod)
 
@@ -965,7 +947,7 @@ class Simple_Strand(Generator):
         self.pairs = pairs
         self.tangle = TANGLE(self.get_tangle_pairs())
         self.tangle.is_simple_tangle()
-        self.strands = Strands(self.tangle, self.get_tuple_strand(pairs))
+        self.strands = Strands(self.tangle, self.get_tuple_strand(self.pairs))
         self.maslov = self.maslov()
         self.alexander = self.alexander()
     
@@ -1050,11 +1032,11 @@ class Simple_Strand(Generator):
         # quite necessary - will come back and remove if unncessary
         #if self.is_left true, then make bijections look  --- then up/down
         if self.is_left == True:
-            right_half = tuple((k,k) for k in self.t)
+            right_half = tuple((k,k) for k in self.s)
             return tuple(( right_half, pairs))  
         # if self.is_left False, then make bijections look like up/down then ----
         else:
-            left_half = tuple((k,k) for k in self.s)
+            left_half = tuple((k,k) for k in self.t)
             return tuple((pairs, left_half))
         
     def crossings(self,option, left_half = False, right_half = False):
@@ -1106,7 +1088,6 @@ class Simple_Strand(Generator):
     
 class TangleModule(DGAlgebra):
     '''CT(Ti)''' 
-    
     def __init__(self, ring, tangle):
         '''Specifies the tangle T adn the ring'''
         DGAlgebra.__init__(self,ring)
@@ -1369,3 +1350,11 @@ class StrandAlgebraElement(Element):
                 return False
         return True
 ############################### TEST CODE ###################################
+
+#dic = {(4,4):(3.5,4),(3.5,4):(3,4),(4,2):(3.5,3), (3.5,3):(3,3), (3,2):(3,1)}
+#tang = TANGLE(dic)
+#print(tang.caps)
+#print(tang.orient_left_lhalf)
+#print(tang.orient_left_rhalf)
+#print(tang.orient_right_rhalf)
+#print(tang.orient_right_lhalf)
