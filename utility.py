@@ -204,7 +204,6 @@ class SummableDict(dict):
         return iter(self).__next__() # in python 3 
 
 #dictionary helper methods:
-    
 def tolist(obj):
     """Force obj into a list."""
     if isinstance(obj, list):
@@ -212,7 +211,6 @@ def tolist(obj):
     else:
         return [obj]    
 #adding dictionaries
-
 def _dictAddTo(dict1, dict2):
     """Add dict2 onto dict1 in place. If dict2 is a list of dictionaries,
     add each element of
@@ -241,8 +239,7 @@ def _dictAddTo(dict1, dict2):
     
 #multiplying dictionaries
 def _dictMult(dict1, scalar):
-    '''Return a new dictionary with same type as self, the same keyes, and each value mlutiplied by scalar'''
-    
+    '''Return a new dictionary with same type as self, the same keyes, and each value mlutiplied by scalar'''   
     if not isinstance(scalar, Number):
         return NotImplemented
     
@@ -253,7 +250,6 @@ def _dictMult(dict1, scalar):
 def safeMultiply(a, b):
     '''multiply two sides using __mul__ and __rmul__. 
     Return NotImplemented if both fails.'''
-    
     try:
         prod = a.__mul__(b)
     except TypeError:
@@ -267,7 +263,6 @@ def safeMultiply(a, b):
     return prod
 
 # ------- practice ------- dict codes
-
 def __add__(self, other):
     '''typical add operation for dictionaries: add other onto self'''
     print("THIS IS WHAT IT MEANS")
@@ -322,7 +317,6 @@ def getElt(self):
 def complement(tup1, tup2):
     ''' Given ordered tup1 = [n] and returns the tup1 \ tup2,
     given that tup2 is contained in tup1''' 
-
     return tuple(set(tup1).difference(set(tup2)))
 
 
@@ -330,19 +324,15 @@ def orientation(pair, left_half = True):
     ''' Given a pair of coordinates ((x_1,y_1), (x_2,y_2)), returns 
     list {1} if from left to right 
     list {-1} if  right to left
-    (1, -1) or (1,1) depending on cup or cap '''
-    
+    (1, -1) or (1,1) depending on cup or cap ''' 
     # left_half is `True` if is left half of the tangle i to i+1/2
     # left_half is `False` if it is right half of the tangle i+1/2 to i+1
-
     x_1,y_1 = pair[0]
-    x_2,y_2 = pair[1]
-    
+    x_2,y_2 = pair[1]   
     if x_1 < x_2: # going left to right
         return (1)
     elif x_1 > x_2:
         return (-1)
-
     else: # cups or caps 
         if left_half == True:
             if y_1 > y_2:
@@ -354,7 +344,6 @@ def orientation(pair, left_half = True):
                 return (1, -1)
             else:
                 return (-1, 1)
-
             
 def orientation_i(pair, left_half = True):
      ''' Improved version of `orientation` method above, but actually returns 
@@ -363,9 +352,7 @@ def orientation_i(pair, left_half = True):
      x_2,y_2 = pair[1]
      pair_0 = (x_1,y_1)
      pair_1 = (x_2,y_2)
-
-    # IF LEFT HALF
-    
+    # IF LEFT HALF    
      if left_half == True:
         if x_1 < x_2: # going left to right
              return {pair_0 :1} # cb
@@ -395,14 +382,12 @@ def doescross_simple(left,right):
     it does tells us whether they intersect''' 
     
     a = ((1, left[0]),(2,left[1]))
-    b = ((1, right[0]),(2, right[1]))
-    
+    b = ((1, right[0]),(2, right[1]))  
     def line(p1, p2):
         A = (p1[1] - p2[1])
         B = (p2[0] - p1[0])
         C = (p1[0]*p2[1] - p2[0]*p1[1])
-        return A, B, -C
-    
+        return A, B, -C    
     def intersection(L1, L2):
         D  = L1[0] * L2[1] - L1[1] * L2[0]
         Dx = L1[2] * L2[1] - L1[1] * L2[2]
@@ -580,19 +565,14 @@ def doescross(a,b):
             return False
         
     L1 = line(a[0],a[1])
-    L2 = line(b[0],b[1])
-    
-        
+    L2 = line(b[0],b[1])       
     if a != b:
         R = intersection(L1, L2)
     else:   R = None
-
     x_1, y_1 = a[0]
     x_2, y_2 = a[1]
     x_3, y_3 = b[0]
     x_4, y_4 = b[1]
-    
-
     if R == False:
         R = None
     elif not(in_between(x_1, x_2, R[0]) and in_between(x_3, x_4, R[0]) and \
@@ -654,17 +634,12 @@ def combinations(n, m):
     ''' retyrbs an array of all possible combinations of n and m
     for example, if n = 1 , m = 2, returns, if WLOG n < m
     [ (0,0),(0,1),.....(n, m-1 ), (n,m)]'''
-    
-    
     ran1 = [k for k in range(0, n+1)] # = [0,1,....n]
     ran2 = [k for k in range(0, m+1)] # = [0,1,....m]
-    
     combo = []
-    
     for i in ran1:
         for j in ran2:
             combo.append((i,j))
-    
     return combo
     
 def generate_subset(n, num):
@@ -678,17 +653,15 @@ def generate_bijections(n):
     
     lst = []
     for size in range(1,n+2):
-        lst += generate_subset(n, size)
-    
+        lst += generate_subset(n, size) 
     return lst
 
-def generate_bijections_2(n,m):
+def generate_bijections_m(n,m): #WRONG CB
     ''' Given n and m, it gives bijections from [n] and [m] with [n] and [m] 
     that may have different size:
         [n] = [0, 1, 2, 3....n]
         [m] = [0, 1, 2, 3,...m]
         '''
-    
     app = []
     if n > m:
         bij = generate_bijections_same(m,m)
@@ -707,32 +680,65 @@ def generate_bijections_2(n,m):
             for pair in b:
                 arr.append((pair[0], pair[1] + diff))
             app.append(arr)
-    
-    print("++++++")
-    print(bij)
     set1 = set(bij)        
     return list(set1.union(set(app)))
 
-def generate_bijections_3(a1, b, a2):
-    ''' '''
-    pass
+def generate_bijections_3(n,m,k): # checked
+    ''' Used for generating `Strand Diagrams`. 
+    n = number of left alpha arcs
+    m = number of beta arcs
+    k = number of right alpha ars.
+    WLOG assume m < n + k. 
+    i.e possible injections between [n] , [m] , and [k] such that every element from
+    Beta arcs are mapped. [n] = {0,1,2,...n}
     
+    return type like 
+[[[(0, 0), (1, 1)], []], [[(1, 0), (0, 1)], []], [[(0, 0)], [(1, 0)]], [[(0, 1)], [(0, 0)]], [[(0, 0)], [(1, 1)]], [[(0, 1)], [(0, 1)]], [[(1, 0)], [(1, 0)]], [[(1, 1)], [(0, 0)]], [[(1, 0)], [(1, 1)]], [[(1, 1)], [(0, 1)]], [[], [(0, 0), (1, 1)]], [[], [(0, 1), (1, 0)]]]'''
+    ran1 = [k for k in range(0, n+1)]
+    ran2 = [k for k in range(0, m+1)]
+    ran3 = [j for j in range(0, k+1)]  
+    ran_total = [k for k in range(0,n+k+2)]       # total arcs possible left or right 
+    combinations = generate_subset(n+k+1, m + 1)
+    arr = []
+#    print("ran total: {0}".format(ran_total))
+    for combo in combinations:
+        ran =  [] # range
+        for c in combo:
+            ran.append(ran_total[c]) # combinations of indxes
+        l = []
+#        print("ran2 here : {0}".format(ran2))
+#        print("ran here : {0}".format(ran))
+        for p in it.permutations(ran):
+            l.append(list(zip(ran2,p)))
+#        print(l)
+        l_new = []
+        for bijections in l:
+#            print("current bijection: {0}".format(bijections))
+            bijections_left = []
+            bijections_right = []
+            for elt in bijections:
+                if elt[1] > n:
+                    bijections_right.append((elt[0],elt[1] - (n+1)))
+                else:
+                    bijections_left.append((elt[1],elt[0]))
+#            print("bijection_left:{0}".format(bijections_left))
+#            print("bijection_right:{0}".format(bijections_right))
+#            print("+++++++++")
+            l_new.append([bijections_left, bijections_right])
+        arr += l_new
+    return arr
 
-def generate_bijections_same(n):
+def generate_bijections_same(n): # checked
     ''' Given n and m, it gives bijections from [n] and [m] with [n] and [m] size the same'''
-
     m = n
     ran1 = [k for k in range(0, n+1)] # = [0,1,....n]
     ran2 = [k for k in range(0, m+1)] # = [0,1,....m]
-    
     bij = []
-     
-    for i in range(1, n+1): # i goes from 1 to n
+    for i in range(1, n+2): # i goes from 1 to n
         for set1 in it.combinations(ran1, i):
             for set2 in it.combinations(ran2, i):
                 for p in it.permutations(set2):
                     bij.append(list(zip(set1,p)))
-    
     return bij
 
 def intersections( dict1, dict2, itself = False):
@@ -762,7 +768,6 @@ def intersections( dict1, dict2, itself = False):
                     intersections.update({(pair_1, pair_2): intersect})
     else: # dict1 = dict2
         intersections = same_set_intersections(dict1)
-    
     return intersections
                 
 def same_set_intersections(dict1):
@@ -1015,7 +1020,7 @@ def mod_between(tangle, pair_left, pair_right, is_left):
             else:
                 return -1 # Mod Relation 3
         else:
-            return 2
+            return -2
     else:
         if in_between(y_left_1, y_left_2, t_1[1]):
             if in_between(y_right_1, y_right_2,t_2[1]): # Mod Relation 5
@@ -1025,7 +1030,7 @@ def mod_between(tangle, pair_left, pair_right, is_left):
             else:  # Mod Relation 6
                 return -1 
         else:
-            return 2
+            return -2
 
 def conc_strands(pair1, pair2):
     ''' Given two tuples, that consists of pairs, say from strand 1, stand 2,
@@ -1098,15 +1103,11 @@ def replace_sd_2(raw, old, new):
         replace_sd_2(raw,((0,1),()), ((10,10),()))
     If old and new are list objects, call:
      replace_sd_2(raw,[[(0,1)], []], [[(10,10)],[]])'''
-    print("+++++++++entered ++++++")
     if len(old) != len(new):
         raise TypeError("The number of old pairs to be replaced do not equal that of new_strands.")
     # if replace single pair ( -- when converting it to a "list" it takes off two tuple parenthesis, thats why
     if isinstance(old, tuple) and isinstance(new, tuple): 
-        #replaces old[0] on the left with new_pair[0], and old[1] on the right with new_pair[1]
-        print("Raw:{0}".format(raw))
-        print("old:{0}".format(old))
-        print("New:{0}".format(new))
+        #replaces old[0] on the left with new_pair[0], and old[1] on the right with new_pair[1])
         new_left = list(raw[0])
         new_right = list(raw[1])
         if old[0] != ():
@@ -1119,8 +1120,6 @@ def replace_sd_2(raw, old, new):
     elif isinstance(old, list) and isinstance(new, list):
         new_left = list(raw[0])
         new_right = list(raw[1])
-        print("New Left:{0}".format(new_left))
-        print("NEw Right:{0}".format(new_right))
         for index, value in enumerate(old[0]):   #change left half
             new_left.remove(value)
             new_left.append(new[0][index])
@@ -1257,3 +1256,9 @@ dict3=   SummableDict({
 #print(len(generate_bijections_2(1,2)))
 
 #print(len(combinations(2, 3)))
+#
+#a = generate_bijections_same(1)
+#print(a)
+
+#a = generate_bijections_3(1,4,3)
+#print(a)
