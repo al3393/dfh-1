@@ -128,7 +128,6 @@ class NamedObject:
     def __ne__(self, other):
         return not (self == other)
 
-    #memorizeHash
     def __hash__(self):
         return hash(self.name)
 

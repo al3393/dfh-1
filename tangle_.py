@@ -24,7 +24,7 @@ class TANGLE:
     
     # Note: 
     # if a the tangle is at the boundary, then we will have a dummy pair 
-    # with x coordinates either -1 or 100 that will eventually be removed
+    # with x coordinates either -1 or 300 that will eventually be removed
     # if only_right_half = =True i.e leftmost cup, then l_pairs = {}
     # if only_right_half == True i.e leftmost cup, then r_pairs = {}
                
@@ -59,7 +59,7 @@ class TANGLE:
         pairs = pairs
         l_pairs = {}
         r_pairs = {}     
-        if (not(a == 0 or c == 100)):
+        if (not(a == 0 or c == 300)):
             for key,value in pairs.items():
                 if a in {key[0],value[0]}:
                     l_pairs.update({key:value}) 
@@ -67,14 +67,14 @@ class TANGLE:
                     r_pairs.update({key:value})
         else:  # remove the dummy pair
             for key,value in pairs.items():
-                if(key[0] == 0 or value[0] == 0) or (key[0] == 100 or value[0] == 100):
+                if(key[0] == 0 or value[0] == 0) or (key[0] == 300 or value[0] == 300):
                     key_name = key                  
             del pairs[key_name]
             if a == 0:
                 r_pairs = pairs
                 l_pairs = {}       
             else:
-                assert c == 100
+                assert c == 300
                 l_pairs = pairs
                 r_pairs = {}      
         return l_pairs,r_pairs
@@ -217,7 +217,7 @@ class TANGLE:
                    x coordinates.")       
         if i_minus == 0: # for boundaries
             only_right_half = True
-        if i_plus == 100:
+        if i_plus == 300:
             only_left_half = True
             
         return i_minus, i_mid, i_plus, only_left_half, only_right_half
@@ -292,7 +292,7 @@ class TANGLE:
             value : coordinate '''
         alpha = {}
         if self.right_boundary == {}:  # if furthest left tangle 
-            alpha = {0:(100,1.5)}
+            alpha = {0:(300,1.5)}
         else:
             assert self.right_boundary != {} #assert error if otherwise
             s_i = len(self.right_boundary) # number of tangles touching boundary
@@ -438,10 +438,9 @@ class Idempotent(tuple):
         self.tangle.is_simple_tangle()
         self.pairs = self.get_tup()
     
-    def __eq__ (self, other):
+    def __eq__ (self, other): # cb and change - idempotents tangle when moving
         if isinstance(other, Idempotent):
-            return self.tangle == other.tangle and self.is_left == other.is_left \
-                                and tuple.__eq__(self,other)
+            return self.sign_seq == other.sign_seq and tuple.__eq__(self,other)
         elif isinstance(other, tuple):
             return tuple.__eq__(self,other)
         else:
@@ -965,8 +964,8 @@ class Simple_Strand(Generator):
         self.maslov = self.maslov()
         self.alexander = self.alexander()
     
-    def __eq__(self, other):
-        return self.parent == other.parent and self.strands == other.strands
+    def __eq__(self, other): # changed
+        return self.sign_seq == other.sign_seq and self.pairs == other.pairs
     
     def __ne__ (self, other):
         return not (self == other)
@@ -996,7 +995,12 @@ class Simple_Strand(Generator):
         new_pairs = tuple(new_pairs)
         
         return Simple_Strand(self.parent, self.is_left, new_pairs)
-        
+    def getLeftIdem(self): # CB and implemented
+            raise NotImplemented
+    
+    def getRightIdem(self):
+            raise NotImplemented # CB and implemented
+    
     def check_s_and_t(self,pairs):
         '''Helper method for __init__ to check whether a Strand Algebra Generator
         is well defined.'''
@@ -1353,12 +1357,24 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
 
 class StrandAlgebraElement(Element):
     ''' An element of strand algebra '''    
-    def isIdempotent(self): # cb and fill in
+    def isIdempotent(self): 
         '''Tests whether this element is an idempotent.'''
         for sd, coeff in self.items():
             if not sd.isIdempotent():
                 return False
         return True
+    
+    def invertible(self): 
+        '''Tests whether this element is an idempotent.'''
+        for sd, coeff in self.items():
+            if not sd.isIdempotent():
+                return False
+        return True
+    
+    def inverse(self):
+        ''' Returns the inverse of this element, if it is invertible.'''
+        return self
+    
 ############################### TEST CODE ###################################
 
 #dic = {(4,4):(3.5,4),(3.5,4):(3,4),(4,2):(3.5,3), (3.5,3):(3,3), (3,2):(3,1)}
