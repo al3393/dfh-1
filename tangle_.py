@@ -315,19 +315,19 @@ class TANGLE:
                 self.occupied.add(value[1])
             else:  # cap
                 #raise value[0] != self.i_mid
-                self.occupied.add(value[1] - 0.5)
+                self.occupied.add(value[1] + 0.5)
         for key in list(self.ud_pairs_r.keys()): #contribution from right half
             if key[0] == self.i_mid: # not cup 
                 self.occupied.add(key[1])  
             else: # cup
                 #raise key[0] != self.i_mid
-                self.occupied.add(key[1]+0.5)
+                self.occupied.add(key[1] + 0.5)
         return self.occupied
     
     def get_beta(self):
         ''' returns a dictionary object of possible beta states:
             key : index s of alpha curve B_{i+1}
-            value : coordinate'''   
+            value : coordinate''' 
         self.occupied_B()
         b_occupied = list(self.occupied)
         b_occupied.sort()   
@@ -336,9 +336,9 @@ class TANGLE:
         for i in range(s_i):
             y = b_occupied[i]
             beta.update({i:(self.i_mid, y - 0.5)})
+        # add top beta curve
         y = b_occupied[s_i - 1]
-        beta.update({s_i: (self.i_mid, y + 0.5)})
-    
+        beta.update({s_i: (self.i_mid, y + 0.5)})    
         return beta
     
     def get_caps(self):
@@ -402,9 +402,9 @@ class TANGLE:
         `parent` is the Strand Algebra of corresponding `is_left` side '''
 
         if self.only_left_half and is_left == False:
-            return TypeError("This is a type D Tangle .")
+            return TypeError("TypeError: This is a type D Tangle .")
         if self.only_right_half and is_left == True:
-            return TypeError("This is a type A Tangle.")
+            return TypeError("TypeError: This is a type A Tangle.")
         alg_gen = []
         if is_left:
             n = len(self.alpha_left)-1
@@ -806,6 +806,10 @@ class StrandDiagram(Generator):
             self.left_idem = self.strands.get_left_idem()  
         if not self.tangle.only_left_half: # Calculate right idempotent
             self.right_idem = self.strands.get_right_idem()      
+#        print("+++++++++++")
+#        print("\n")
+#        print(self.strands)
+#        print("TANGLE INFO %%%%%%%%%%")
         self.maslov = self.maslov()
         self.alexander = self.alexander()
     
@@ -823,10 +827,7 @@ class StrandDiagram(Generator):
     
     def __repr__(self):
         return str(self)
-    
-    def getGrading(self): # cb and modify
-        return self.tangle.grading(self.maslov(), self.alexander())
-    
+   
     def numCrossing(self, left_half = True): # cb and remove - already in strands class
         ''' Returns the number of crossings between moving strands
         either left_half or right_half depending on `left_half'''
@@ -875,7 +876,8 @@ class StrandDiagram(Generator):
             if right_half == True: ## right half:
                 dict1 = self.tangle.orient_right_rhalf
                 dict2 = self.strands.right_converted
-                num+= simple_intersections(dict1,dict2,False)      
+                num+= simple_intersections(dict1,dict2,False) 
+                
         if option == 3:
             # tangle right & tangle right       
             if left_half == True: ## left half:
@@ -896,32 +898,60 @@ class StrandDiagram(Generator):
                num += simple_intersections(dict2,dict2,True)     
         if option == 5:
             # tangle oriented left on entire tangle for last term in alexander
-            for value in self.tangle.orient_left_rhalf.values():
-                if value in self.tangle.orient_left_lhalf.keys():
-                    num += 1      
+            num += len(self.tangle.orient_left_rhalf) + \
+                    len(self.tangle.orient_left_lhalf)            
+#            for value in self.tangle.orient_left_rhalf.values():
+#                if value in self.tangle.orient_left_lhalf.keys():
+#                    num += 1      
         if option == 6:
-            # tangle_left on left half tangle for maslov (xi-) and (xi+)
-            num = len(self.tangle.orient_left_lhalf) + len(self.tangle.orient_left_rhalf)
+            # tangle_left on left half tangle for maslov (xi-)
+            num = len(self.tangle.orient_left_lhalf) 
         return num
-                
+                    
     def maslov(self):
         '''Maslov grading for a generator of Strand Diagram'''
         maslov = 0 
+#        DEBUGGING CODE
+#        print("left_half (x_i -)")
+#        print("Type 0 crossing:{0}".format(self.strands.numCrossing(True)))
+#        print("Type 1 crossing:{0}".format(self.crossings(1, True, False)))
+#        print("Type 4 crossing:{0}".format(self.crossings(4, True, False)))
+#        print("Type 6 crossing:{0}".format(self.crossings(6, True, False)))
+#        
+#        print("right_half((x_i +)")
+#        print("Type 0 crossing:{0}".format(self.strands.numCrossing(False)))
+#        print("Type 2 crossing:{0}".format(self.crossings(2, False, True)))
+#        print("Type 3 crossing:{0}".format(self.crossings(3, False, True)))
+#        
         #left_half (x_i -)
         maslov += - self.strands.numCrossing(True) + self.crossings(1, True, False) - \
                     self.crossings(4, True, False) - self.crossings(6, True, False)  
+        
         #right_half((x_i +)
         maslov += self.strands.numCrossing(False) - self.crossings(2, False, True) + \
-                    self.crossings(4, False, True)
+                    self.crossings(3, False, True)
         return maslov
     
     def alexander(self):
         '''Alexander grading for a generator of Strand Diagram'''
         alex = 0
+        
+        #DEBUGGING CODE
+#        print("ALEXANDER:")
+#        print("Type 1 crossing:{0}".format(self.crossings(1, True, True)))
+#        print("Type 2 crossing:{0}".format(self.crossings(2, True, True)))
+#        print("Type 3 crossing:{0}".format(self.crossings(3, True, True)))
+#        print("Type 4 crossing:{0}".format(self.crossings(4, True, True)))
+#        print("Type 4 crossing:{0}".format(self.crossings(5, True, True)))
+        
         alex += self.crossings(1, True, True) - self.crossings(2, True, True) + \
                         self.crossings(3, True, True) - self.crossings(4, True, True) \
                                     - self.crossings(5,True, True)
         return alex * 0.5 
+         
+    def getGrading(self):
+        'return tuple (M,A) of this strand diagram'''
+        return (self.maslov,self.alexander)
     
     def getLeftIdem(self):
         return self.strands.get_left_idem()
