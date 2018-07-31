@@ -163,7 +163,8 @@ class TANGLE:
     def undirect_pairs_split(self): # useless cb and remove
         '''given l_pairs, r_pairs redirect the pairs such as
         it goes from left to right. fixes orientation for 
-        caps or cups as well such that it always goes clockwise.'''  
+        caps or cups as well such that it always goes clockwise.
+        DOES NOT SPLIT CUP OR CAP YET'''  
         self.ud_pairs_l = {}
         self.ud_pairs_r = {}   
         # left right
@@ -202,7 +203,7 @@ class TANGLE:
         s_1 = set(val[0] for val in pairs.keys())  
         s_2 = set(val[0] for val in pairs.values())  
         s = s_1.union(s_2)
-    
+        
         assert len(s) == 3 # if it is not an elementary tangle assert error
         
         # classify whether it belongs to left half or right half
@@ -314,17 +315,17 @@ class TANGLE:
                 self.occupied.add(value[1])
             else:  # cap
                 #raise value[0] != self.i_mid
-                self.occupied.add(value[1])
+                self.occupied.add(value[1] - 0.5)
         for key in list(self.ud_pairs_r.keys()): #contribution from right half
-            if key[0] == self.i_mid: # not cup
-                self.occupied.add(key[1])       
+            if key[0] == self.i_mid: # not cup 
+                self.occupied.add(key[1])  
             else: # cup
                 #raise key[0] != self.i_mid
-                self.occupied.add(key[1])
+                self.occupied.add(key[1]+0.5)
         return self.occupied
     
     def get_beta(self):
-        ''' returns a dictionary object of possible alpha states:
+        ''' returns a dictionary object of possible beta states:
             key : index s of alpha curve B_{i+1}
             value : coordinate'''   
         self.occupied_B()
@@ -399,12 +400,16 @@ class TANGLE:
         '''Get the list of generators of the strand algebra, depending on variable `is_left`.
         If `is_left` is true, takes into account of left boundary of this tangle
         `parent` is the Strand Algebra of corresponding `is_left` side '''
+        
         alg_gen = []
         if is_left:
             n = len(self.alpha_left)-1
         else:
             n = len(self.alpha_right) -1
-        bij = generate_bijections_same[n]
+        bij = generate_bijections_same(n)
+        print("+++++++++")
+        print(bij)
+        print("+++++++++")
         for bijection in bij:
             alg_gen.append(Simple_Strand(parent, is_left, tuple(bijection)))
         return alg_gen
