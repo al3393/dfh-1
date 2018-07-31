@@ -804,7 +804,7 @@ def get_domain(tup):
     dom = []
     for pair in tup:
         dom.append(pair[0])
-    return dom
+    return tuple(dom)
     
 def get_range(tup):
     '''given a tuple of pairs(injective), it returns list of domains
@@ -814,7 +814,7 @@ def get_range(tup):
     ran = []
     for pair in tup:
         ran.append(pair[1])
-    return ran
+    return tuple(ran)
 
 def get_domain_dict(dic):
     ''' either takes a dictionary object or a list of dictionary objects

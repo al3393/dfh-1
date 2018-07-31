@@ -604,12 +604,12 @@ class Strands(tuple):
         return self.leftCompatible_idem(left_idem) and \
         self.rightCompatible_idem(right_idem) #cb
     
-    def get_left_idem(self): # needs modification
+    def get_left_idem(self): # For tangles # needs modification
         '''Find the left_idem given the strand information.'''
         occupied_l = self.occupied_left_alpha()
         return Idempotent(self.tangle, self.tangle.complement_idem(occupied_l,True), True)
       
-    def get_right_idem(self): # needs modification
+    def get_right_idem(self):# For strand diagram # needs modification
         '''Find the left_idem given the strand information.'''
         occupied_r = self.occupied_right_alpha()
         return Idempotent(self.tangle, occupied_r, False)
@@ -993,13 +993,13 @@ class Simple_Strand(Generator):
                 new_pairs.append(pair)      
         new_pairs = list(new_pairs) + list(add)
         new_pairs = tuple(new_pairs)
-        
         return Simple_Strand(self.parent, self.is_left, new_pairs)
-    def getLeftIdem(self): # CB and implemented
-            raise NotImplemented
-    
+   
+    def getLeftIdem(self):  # ask hsin pei CB
+        return Idempotent(self.p_tangle, tuple(self.s), self.is_left)     
+
     def getRightIdem(self):
-            raise NotImplemented # CB and implemented
+        return Idempotent(self.p_tangle, tuple(self.t), self.is_left)   
     
     def check_s_and_t(self,pairs):
         '''Helper method for __init__ to check whether a Strand Algebra Generator
@@ -1096,7 +1096,7 @@ class Simple_Strand(Generator):
         return 0.5 * (self.strands.crossings(1,True,True) - self.strands.crossings(2, True, True))
     
     def isIdempotent(self):
-        return self.s == self.t
+        return self.s == self.t # self.s and self.t is tuple element, so ordering matters
 
     def numCrossing(self): # cb and remove - already in strands class
         ''' Returns the number of crossings between moving strands
@@ -1226,12 +1226,12 @@ class StrandAlgebra(DGAlgebra): #The `parent` of  Strand Algebra
                 arr.append(s_pair)   
         return arr
             
-    def getGenerators(self): 
+    def getGenerators(self): #HP
         ''' Returns the list of generators.'''
         return self.p_tangle.getAlgebra(self.is_left, self)
     
-    def getIdempotents(self): 
-        ''' Returns the set of Idempotents, using the corresponding function in `tangle`'''
+    def getIdempotents(self):  # Hsin Pei - come back and edit
+        ''' Returns the list of Idempotents, using the corresponding function in `tangle`'''
         return self.p_tangle.getIdempotents(self.is_left)
     
     def _multiplyRaw(self, gen1, gen2):
@@ -1359,8 +1359,8 @@ class StrandAlgebraElement(Element):
     ''' An element of strand algebra '''    
     def isIdempotent(self): 
         '''Tests whether this element is an idempotent.'''
-        for sd, coeff in self.items():
-            if not sd.isIdempotent():
+        for sa, coeff in self.items():
+            if not sa.isIdempotent(): # F2 so no need to check coefficients
                 return False
         return True
     
