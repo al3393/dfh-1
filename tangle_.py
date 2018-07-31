@@ -217,9 +217,9 @@ class TANGLE:
             print("Something is wrong -- tangle has less than three \
                    x coordinates.")       
         if i_minus == 0: # for boundaries
-            only_right_half = True
-        if i_plus == 300:
-            only_left_half = True
+            only_right_half = True #type A
+        if i_plus == 300: 
+            only_left_half = True # type D
             
         return i_minus, i_mid, i_plus, only_left_half, only_right_half
         
@@ -400,16 +400,17 @@ class TANGLE:
         '''Get the list of generators of the strand algebra, depending on variable `is_left`.
         If `is_left` is true, takes into account of left boundary of this tangle
         `parent` is the Strand Algebra of corresponding `is_left` side '''
-        
+
+        if self.only_left_half and is_left == False:
+            return TypeError("This is a type D Tangle .")
+        if self.only_right_half and is_left == True:
+            return TypeError("This is a type A Tangle.")
         alg_gen = []
         if is_left:
             n = len(self.alpha_left)-1
         else:
             n = len(self.alpha_right) -1
         bij = generate_bijections_same(n)
-        print("+++++++++")
-        print(bij)
-        print("+++++++++")
         for bijection in bij:
             alg_gen.append(Simple_Strand(parent, is_left, tuple(bijection)))
         return alg_gen
@@ -422,7 +423,8 @@ class TANGLE:
         k = len(self.alpha_right) -1
         bij = generate_bijections_3(n,m,k)
         for bijection in bij:
-            gen.append(StrandDiagram(p_module,(tuple(bijection[0]),tuple(bijection[1]))))
+#            print("bijection is: {0}".format(bijection))
+            gen.append(StrandDiagram(p_module, Strands(self,bijection)))
         return gen
     
 class Idempotent(tuple):
@@ -435,6 +437,11 @@ class Idempotent(tuple):
         self.p_tangle = p_tangle
         self.is_left = is_left
         
+        if is_left and self.p_tangle.only_right_half:
+            raise TypeError("Left empty boundary")
+        if not is_left and self.p_tangle.only_left_half:
+            raise TypeError("Right empty boundary")
+            
         if self.is_left == True:
             self.sign_seq = self.p_tangle.left_boundary
         else:
@@ -539,9 +546,9 @@ class Strands(tuple):
         return hash((self.tangle, tuple(self), "Strands"))
     
     def __str__(self):
-        string = "Left: "
+        string = "\n Left: "
         string += "(%s)" % ",".join("%s->%s" % (s, t) for s, t in self[0]) 
-        string += "\n Right: "    
+        string += "Right: "    
         string += "(%s)" % ",".join("%s->%s" % (s, t) for s, t in self[1]) 
         return string
     
@@ -795,9 +802,9 @@ class StrandDiagram(Generator):
             self.strands = Strands(self.tangle, self.strands)
         if (len(self.strands[0]) + len(self.strands[1])) != len(self.tangle.beta):
             raise TypeError("The beta curves are not filled.")
-        if left_idem is None: # Calculate left idempotent
+        if not self.tangle.only_right_half: # Calculate left idempotent
             self.left_idem = self.strands.get_left_idem()  
-        if right_idem is None: # Calculate right idempotent
+        if not self.tangle.only_left_half: # Calculate right idempotent
             self.right_idem = self.strands.get_right_idem()      
         self.maslov = self.maslov()
         self.alexander = self.alexander()
@@ -955,6 +962,10 @@ class Simple_Strand(Generator):
         Generator.__init__(self,parent)
         self.p_tangle = parent.tangle # tangle that it takes its sign from 
         self.is_left = is_left
+        if is_left and self.p_tangle.only_right_half:
+            raise TypeError("Left empty boundary")
+        if not is_left and self.p_tangle.only_left_half:
+            raise TypeError("Right empty boundary")
         if self.is_left:
             self.sign_seq = self.p_tangle.left_boundary
         else:
